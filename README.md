@@ -3,8 +3,6 @@
 ## Chapter 2 - Kubernetes Basics
 ### First Deploy
 - [1.1](https://github.com/Andres02Otero/kubernetes-devops-submissions/releases/tag/1.1)
-- [1.2](https://github.com/Andres02Otero/kubernetes-devops-submissions/releases/tag/1.1)
-- [1.3](https://github.com/Andres02Otero/kubernetes-devops-submissions/releases/tag/1.1)
-- [1.4](https://github.com/Andres02Otero/kubernetes-devops-submissions/releases/tag/1.1)
-
-
+- [1.2](https://github.com/Andres02Otero/kubernetes-devops-submissions/releases/tag/1.2)
+- [1.3](https://github.com/Andres02Otero/kubernetes-devops-submissions/releases/tag/1.3)
+- [1.4](https://github.com/Andres02Otero/kubernetes-devops-submissions/releases/tag/1.4)
