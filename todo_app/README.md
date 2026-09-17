@@ -20,11 +20,10 @@ docker run -d -e PORT=3000 andres09otero/todo-app:1.0.0
 docker logs -f <container-id>
 ```
 
-## Deploy with Kubernetes (imperative)
+## Deploy with Kubernetes
 
 ```bash
-kubectl create deployment todo-app --image=andres09otero/todo-app:1.0.0
-kubectl set env deployment/todo-app PORT=3000
+kubectl apply -f manifests/deployment.yaml
 ```
 
 ## Verify
