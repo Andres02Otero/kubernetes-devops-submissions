@@ -1,8 +1,8 @@
 {
   "name": "todo_app",
-  "version": "1.0.0",
+  "version": "1.1.2",
   "private": true,
-  "description": "Servidor base del proyecto todo app (ejercicio 1.2, DevOps with Kubernetes)",
+  "description": "Servidor del proyecto todo app: base (1.2) + endpoint GET / con HTML basico (1.5)",
   "main": "src/index.js",
   "scripts": {
     "start": "node src/index.js"

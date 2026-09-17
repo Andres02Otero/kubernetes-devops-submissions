@@ -1,17 +1,17 @@
 # Todo App
 
-Servidor base del proyecto (ejercicio 1.2). Al arrancar loguea `Server started in port <PORT>`, leyendo el puerto de la variable de entorno `PORT` (por defecto 3000 si no se define). Todavia no expone el CRUD de tareas, eso llega en un ejercicio posterior.
+Servidor del proyecto. Al arrancar loguea `Server started in port <PORT>`, leyendo el puerto de la variable de entorno `PORT` (por defecto 3000 si no se define). Responde HTML basico a `GET /`. Todavia no expone el CRUD de tareas, eso llega en un ejercicio posterior.
 
 ## Build the image
 
 ```bash
-docker build -t andres09otero/todo-app:1.0.0 .
+docker build -t andres09otero/todo-app:1.1.2 .
 ```
 
 ## Run the container
 
 ```bash
-docker run -d -e PORT=3000 andres09otero/todo-app:1.0.0
+docker run -d -e PORT=3000 -p 3000:3000 andres09otero/todo-app:1.1.2
 ```
 
 ## View the logs
@@ -32,3 +32,11 @@ kubectl apply -f manifests/deployment.yaml
 kubectl get pods
 kubectl logs -f <pod-name>
 ```
+
+## Access from outside the cluster (port-forward)
+
+```bash
+kubectl port-forward <pod-name> 3003:3000
+```
+
+Then open `http://localhost:3003` in a browser.
