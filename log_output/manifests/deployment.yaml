@@ -20,5 +20,8 @@ spec:
     spec:
       containers:
         - name: log-output
-          image: andres09otero/log-output:1.0.0
+          image: andres09otero/log-output:1.1.0
+          env:
+            - name: PORT
+              value: "3000"
 

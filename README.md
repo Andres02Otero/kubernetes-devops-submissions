@@ -10,6 +10,7 @@
 ### Introduction to Networking
 - [1.5](https://github.com/Andres02Otero/kubernetes-devops-submissions/tree/1.5)
 - [1.6](https://github.com/Andres02Otero/kubernetes-devops-submissions/tree/1.6)
+- [1.7](https://github.com/Andres02Otero/kubernetes-devops-submissions/tree/1.7)
 
 Local cluster is created with host ports mapped for NodePort/Ingress access:
 
