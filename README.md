@@ -9,3 +9,10 @@
 
 ### Introduction to Networking
 - [1.5](https://github.com/Andres02Otero/kubernetes-devops-submissions/tree/1.5)
+- [1.6](https://github.com/Andres02Otero/kubernetes-devops-submissions/tree/1.6)
+
+Local cluster is created with host ports mapped for NodePort/Ingress access:
+
+```bash
+k3d cluster create --port 8082:30080@agent:0 -p 8081:80@loadbalancer --agents 2
+```

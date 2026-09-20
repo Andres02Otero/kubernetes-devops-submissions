@@ -24,6 +24,7 @@ docker logs -f <container-id>
 
 ```bash
 kubectl apply -f manifests/deployment.yaml
+kubectl apply -f manifests/service.yaml
 ```
 
 ## Verify
@@ -33,10 +34,20 @@ kubectl get pods
 kubectl logs -f <pod-name>
 ```
 
-## Access from outside the cluster (port-forward)
+## Access from outside the cluster
+
+Requires a k3d cluster created with `30080` mapped to a host port (see root README). Then:
+
+```bash
+kubectl get svc todo-app-svc
+```
+
+Open `http://localhost:8082` in a browser.
+
+### Alternative: port-forward (no NodePort mapping needed)
 
 ```bash
 kubectl port-forward <pod-name> 3003:3000
 ```
 
-Then open `http://localhost:3003` in a browser.
+Then open `http://localhost:3003`.
