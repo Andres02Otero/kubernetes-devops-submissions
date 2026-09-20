@@ -1,0 +1,10 @@
+{
+  "name": "log-output-writer",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Genera un random ID y escribe timestamp+ID cada 5s en un archivo compartido (ejercicio 1.10)",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  }
+}

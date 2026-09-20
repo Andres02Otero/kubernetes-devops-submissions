@@ -1,0 +1,10 @@
+{
+  "name": "log-output-reader",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Lee el archivo compartido y sirve la ultima linea (timestamp+ID) por HTTP GET (ejercicio 1.10)",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  }
+}
