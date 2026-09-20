@@ -33,3 +33,5 @@ kubectl apply -f manifests/ingress.yaml
 Requires a k3d cluster created with port `80` mapped to a host port (see root README). Then open `http://localhost:8081` in a browser.
 
 Port chain: `localhost:8081` → k3d load balancer → Ingress (`log-output-ingress`, port 80) → Service (`log-output-svc`, `port: 2345`) → Pod container (`targetPort: 3000`).
+
+Since exercise 1.9, `log-output-ingress` also routes `/pingpong` to the `ping_pong` app (separate deployment, see `../ping_pong/`) — it must be deployed for that path to work. This Ingress and `todo-app-ingress` both claim path `/`, so only one can be applied at a time (see `../todo_app/README.md`).

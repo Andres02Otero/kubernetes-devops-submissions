@@ -1,0 +1,10 @@
+{
+  "name": "ping_pong",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Responde 'pong N' a GET /pingpong y cuenta las requests en memoria (ejercicio 1.9)",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  }
+}
