@@ -25,6 +25,7 @@ docker logs -f <container-id>
 ```bash
 kubectl apply -f manifests/deployment.yaml
 kubectl apply -f manifests/service.yaml
+kubectl apply -f manifests/ingress.yaml
 ```
 
 ## Verify
@@ -36,15 +37,13 @@ kubectl logs -f <pod-name>
 
 ## Access from outside the cluster
 
-Requires a k3d cluster created with `30080` mapped to a host port (see root README). Then:
+Since exercise 1.8, access is via Ingress (Service is `ClusterIP`, no longer `NodePort`). Requires a k3d cluster created with port `80` mapped to a host port (see root README). Then open `http://localhost:8081` in a browser.
 
-```bash
-kubectl get svc todo-app-svc
-```
+Port chain: `localhost:8081` → k3d load balancer → Ingress (`todo-app-ingress`, port 80) → Service (`todo-app-svc`, `port: 1234`) → Pod container (`targetPort: 3000`).
 
-Open `http://localhost:8082` in a browser.
+Note: `log_output`'s Ingress must not be applied at the same time (both claim path `/`) — delete it first with `kubectl delete -f ../log_output/manifests/ingress.yaml` if it's still active.
 
-### Alternative: port-forward (no NodePort mapping needed)
+### Alternative: port-forward (no Ingress needed)
 
 ```bash
 kubectl port-forward <pod-name> 3003:3000
