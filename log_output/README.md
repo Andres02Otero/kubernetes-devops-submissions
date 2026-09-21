@@ -3,9 +3,16 @@
 Since exercise 1.10, this app is split into **two containers sharing one Pod** via an `emptyDir` volume (`/usr/src/app/files`):
 
 - **`writer/`**: generates a random ID on startup, and every 5 seconds appends a line (`timestamp: randomID`) to a shared file. Also still logs it to stdout (`kubectl logs <pod> -c writer`).
-- **`reader/`**: HTTP server, `GET /` returns the **last line** written to the shared file. Accessible via Ingress.
+- **`reader/`**: HTTP server, `GET /` returns the **last line** written to the shared file, plus a second line with the ping-pong request count. Accessible via Ingress.
 
 (Before 1.10 this was a single container doing both things — replaced, not kept alongside.)
+
+Since exercise 1.11, `reader` also mounts the `PersistentVolume` shared with `ping_pong` (see `../persistent-volumes/`) at `/usr/src/app/counter`, and includes its value in the response:
+
+```
+2020-03-30T12:15:17.705Z: 8523ecb1-c716-4cb6-a044-b9e83bb98e43
+Ping / Pongs: 3
+```
 
 ## Build the images
 
@@ -22,6 +29,8 @@ docker push andres09otero/log-output-reader:1.0.0
 ```
 
 ## Deploy with Kubernetes
+
+Requires the shared PersistentVolume/Claim applied first — see `../persistent-volumes/README.md`.
 
 ```bash
 kubectl apply -f manifests/deployment.yaml

@@ -21,4 +21,7 @@ k3d cluster create --port 8082:30080@agent:0 -p 8081:80@loadbalancer --agents 2
 - [1.7](https://github.com/Andres02Otero/kubernetes-devops-submissions/tree/1.7)
 - [1.8](https://github.com/Andres02Otero/kubernetes-devops-submissions/tree/1.8)
 - [1.9](https://github.com/Andres02Otero/kubernetes-devops-submissions/tree/1.9)
+
+### Introduction to Storage
 - [1.10](https://github.com/Andres02Otero/kubernetes-devops-submissions/tree/1.10)
+- [1.11](https://github.com/Andres02Otero/kubernetes-devops-submissions/tree/1.11)

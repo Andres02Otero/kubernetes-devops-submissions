@@ -1,6 +1,8 @@
 # Ping Pong App
 
-Responde `pong <N>` a `GET /pingpong`, donde `N` es un contador en memoria que aumenta con cada request (se reinicia si el Pod se recrea). No usa dependencias externas (modulo nativo `http`, igual que `log_output`).
+Responde `pong <N>` a `GET /pingpong`, donde `N` es un contador que aumenta con cada request. No usa dependencias externas (modulo nativo `http`, igual que `log_output`).
+
+Desde el ejercicio 1.11, `N` se persiste en un `PersistentVolume` compartido con `log_output` (ver `../persistent-volumes/`) en vez de vivir solo en memoria — sobrevive a que el Pod se recree. `log_output`'s `reader` lee ese mismo archivo para mostrar el contador junto a su propio status.
 
 ## Build the image
 
@@ -21,6 +23,8 @@ docker logs -f <container-id>
 ```
 
 ## Deploy with Kubernetes
+
+Requires the shared PersistentVolume/Claim applied first — see `../persistent-volumes/README.md`.
 
 ```bash
 kubectl apply -f manifests/deployment.yaml
