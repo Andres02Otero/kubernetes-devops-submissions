@@ -1,8 +1,8 @@
 {
   "name": "todo_app",
-  "version": "1.1.2",
+  "version": "1.2.1",
   "private": true,
-  "description": "Servidor del proyecto todo app: base (1.2) + endpoint GET / con HTML basico (1.5)",
+  "description": "Servidor del proyecto todo app: base (1.2), GET / con HTML (1.5), imagen aleatoria cacheada (1.12)",
   "main": "src/index.js",
   "scripts": {
     "start": "node src/index.js"

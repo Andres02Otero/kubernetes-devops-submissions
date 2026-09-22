@@ -6,10 +6,21 @@
 // algo a un GET / y que sea accesible via navegador con port-forward.
 
 const express = require('express');
+const { ensureImage, imageExists, getImagePath } = require('./imageCache');
 
 const app = express();
 
-app.get('/', (req, res) => {
+app.get('/', async (req, res) => {
+  try {
+    await ensureImage();
+  } catch (err) {
+    console.error('Error obteniendo la imagen:', err);
+  }
+
+  const imageTag = imageExists()
+    ? '<img src="/image" alt="Imagen aleatoria" style="max-width: 400px;" />'
+    : '<p>No se pudo cargar la imagen todavia.</p>';
+
   res.send(`
     <!DOCTYPE html>
     <html lang="es">
@@ -19,10 +30,19 @@ app.get('/', (req, res) => {
       </head>
       <body>
         <h1>To do App</h1>
-        <p>El backend esta corriendo. El CRUD de tareas llega en un ejercicio posterior.</p>
+        ${imageTag}
       </body>
     </html>
   `);
+});
+
+app.get('/image', (req, res) => {
+  if (!imageExists()) {
+    res.status(404).send('No image cached yet');
+    return;
+  }
+
+  res.sendFile(getImagePath());
 });
 
 module.exports = app;
