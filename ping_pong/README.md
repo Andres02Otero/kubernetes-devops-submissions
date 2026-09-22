@@ -1,19 +1,21 @@
 # Ping Pong App
 
-Responde `pong <N>` a `GET /pingpong`, donde `N` es un contador que aumenta con cada request. No usa dependencias externas (modulo nativo `http`, igual que `log_output`).
+Responde `pong <N>` a `GET /pingpong`, donde `N` es un contador en memoria que aumenta con cada request. No usa dependencias externas (modulo nativo `http`, igual que `log_output`).
 
-Desde el ejercicio 1.11, `N` se persiste en un `PersistentVolume` compartido con `log_output` (ver `../persistent-volumes/`) en vez de vivir solo en memoria — sobrevive a que el Pod se recree. `log_output`'s `reader` lee ese mismo archivo para mostrar el contador junto a su propio status.
+`GET /pings` devuelve solo el numero actual del contador (sin incrementar, sin el prefijo `pong `) — pensado para que otros pods lo consulten por HTTP, no para el navegador.
+
+Historial del contador: vivio en memoria (1.9) → se persistio en un `PersistentVolume` compartido con `log_output` (1.11) → **desde 2.1, vuelve a vivir solo en memoria**, y `log_output` lo consulta por HTTP a traves de `ping-pong-svc` en vez de leer un archivo compartido (el volumen compartido se elimino).
 
 ## Build the image
 
 ```bash
-docker build -t andres09otero/ping-pong:1.0.0 .
+docker build -t andres09otero/ping-pong:1.1.0 .
 ```
 
 ## Run the container
 
 ```bash
-docker run -d -e PORT=3000 -p 3000:3000 andres09otero/ping-pong:1.0.0
+docker run -d -e PORT=3000 -p 3000:3000 andres09otero/ping-pong:1.1.0
 ```
 
 ## View the logs
@@ -23,8 +25,6 @@ docker logs -f <container-id>
 ```
 
 ## Deploy with Kubernetes
-
-Requires the shared PersistentVolume/Claim applied first — see `../persistent-volumes/README.md`.
 
 ```bash
 kubectl apply -f manifests/deployment.yaml

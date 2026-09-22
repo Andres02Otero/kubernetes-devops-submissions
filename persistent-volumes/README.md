@@ -4,16 +4,6 @@ Cluster-wide storage definitions, kept out of any single app's `manifests/` fold
 
 Both PVs here are `local`, tied to the node `k3d-k3s-default-agent-0` and backed by a path on that node's filesystem. Kubernetes automatically schedules any Pod using their PVC onto that same node via the PV's `nodeAffinity`, once the PVC is bound.
 
-## `shared-pv` / `shared-pvc` (exercise 1.11)
-
-Used by `ping_pong` (writes the request counter) and `log_output`'s `reader` container (reads it to show alongside its own status).
-
-```bash
-docker exec k3d-k3s-default-agent-0 mkdir -p /tmp/kube
-kubectl apply -f persistentvolume.yaml
-kubectl apply -f persistentvolumeclaim.yaml
-```
-
 ## `todo-app-image-pv` / `todo-app-image-pvc` (exercise 1.12)
 
 Used by `todo_app` to cache the random Picsum image so it survives Pod restarts and isn't re-fetched on every request.
@@ -30,4 +20,13 @@ kubectl apply -f todoapp-image-pvc.yaml
 kubectl get pv,pvc
 ```
 
-Both claims should show `STATUS: Bound`.
+The claim should show `STATUS: Bound`.
+
+## Retired: `shared-pv` / `shared-pvc` (exercise 1.11, removed in 2.1)
+
+Used to share the ping-pong counter between `ping_pong` and `log_output` via a file. Exercise 2.1 explicitly replaces this with direct HTTP communication between the two Pods, so this PV/PVC was deleted (both from this folder and, run this if you still have it deployed, from the cluster):
+
+```bash
+kubectl delete pvc shared-pvc
+kubectl delete pv shared-pv
+```

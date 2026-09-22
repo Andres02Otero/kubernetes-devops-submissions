@@ -22,10 +22,6 @@ spec:
         - name: shared-status
           emptyDir: {}
 
-        - name: shared-counter
-          persistentVolumeClaim:
-            claimName: shared-pvc
-
       containers:
         - name: writer
           image: andres09otero/log-output-writer:1.0.0
@@ -34,13 +30,11 @@ spec:
               mountPath: /usr/src/app/files
 
         - name: reader
-          image: andres09otero/log-output-reader:1.0.0
+          image: andres09otero/log-output-reader:1.1.0
           env:
             - name: PORT
               value: "3000"
           volumeMounts:
             - name: shared-status
               mountPath: /usr/src/app/files
-            - name: shared-counter
-              mountPath: /usr/src/app/counter
 

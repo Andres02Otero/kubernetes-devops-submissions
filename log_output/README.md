@@ -7,30 +7,30 @@ Since exercise 1.10, this app is split into **two containers sharing one Pod** v
 
 (Before 1.10 this was a single container doing both things — replaced, not kept alongside.)
 
-Since exercise 1.11, `reader` also mounts the `PersistentVolume` shared with `ping_pong` (see `../persistent-volumes/`) at `/usr/src/app/counter`, and includes its value in the response:
+`reader` also includes the ping-pong count in the response:
 
 ```
 2020-03-30T12:15:17.705Z: 8523ecb1-c716-4cb6-a044-b9e83bb98e43
 Ping / Pongs: 3
 ```
 
+That count's source changed over time: a `PersistentVolume` shared with `ping_pong` (1.11) → **since 2.1**, `reader` fetches it directly over HTTP from `ping-pong-svc` (`http://ping-pong-svc:3001/pings`), pod-to-pod via Kubernetes' internal DNS — no shared volume between the two apps anymore (it was removed, see `../persistent-volumes/README.md`). `ping_pong` must be deployed and reachable for this to work; on error, `reader` falls back to showing `0` instead of failing the whole response.
+
 ## Build the images
 
 ```bash
 docker build -t andres09otero/log-output-writer:1.0.0 writer/
-docker build -t andres09otero/log-output-reader:1.0.0 reader/
+docker build -t andres09otero/log-output-reader:1.1.0 reader/
 ```
 
 ## Push
 
 ```bash
 docker push andres09otero/log-output-writer:1.0.0
-docker push andres09otero/log-output-reader:1.0.0
+docker push andres09otero/log-output-reader:1.1.0
 ```
 
 ## Deploy with Kubernetes
-
-Requires the shared PersistentVolume/Claim applied first — see `../persistent-volumes/README.md`.
 
 ```bash
 kubectl apply -f manifests/deployment.yaml
