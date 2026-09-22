@@ -4,16 +4,18 @@ Servidor del proyecto. Al arrancar loguea `Server started in port <PORT>`, leyen
 
 Desde el ejercicio 1.12, `GET /` tambien muestra una imagen aleatoria de [Picsum](https://picsum.photos/1200), cacheada en un `PersistentVolume` (`../persistent-volumes/todoapp-image-pv.yaml`) montado en `/usr/src/app/image-cache`. La imagen se reutiliza durante 10 minutos; pasado ese tiempo, esa peticion todavia muestra la vieja y el refresh (llamada a Picsum) se dispara en segundo plano para que la siguiente peticion ya tenga una nueva — asi el request del usuario nunca espera a la API externa salvo la primera vez que no hay ninguna imagen cacheada todavia. `GET /image` sirve el binario de la imagen cacheada.
 
+Desde el ejercicio 1.13, `GET /` tambien incluye un input (max 140 caracteres) + boton "Send" y una lista de tareas **hardcodeadas** en el servidor (sin lectura de ningun lado). El boton agrega la tarea a la lista visible con JS del lado del cliente — sigue sin persistencia real (nada se manda al backend, se pierde al recargar la pagina). El CRUD real llega en un ejercicio posterior.
+
 ## Build the image
 
 ```bash
-docker build -t andres09otero/todo-app:1.2.1 .
+docker build -t andres09otero/todo-app:1.3.1 .
 ```
 
 ## Run the container
 
 ```bash
-docker run -d -e PORT=3000 -p 3000:3000 -v $(pwd)/image-cache-local:/usr/src/app/image-cache andres09otero/todo-app:1.2.1
+docker run -d -e PORT=3000 -p 3000:3000 -v $(pwd)/image-cache-local:/usr/src/app/image-cache andres09otero/todo-app:1.3.1
 ```
 
 ## View the logs
