@@ -1,25 +1,39 @@
 // app.js
 //
 // Arma la app de Express. La ruta raiz devuelve HTML (requisito 1.5),
-// con la imagen cacheada (1.12) y ahora el formulario + lista de tareas
-// hardcodeadas del ejercicio 1.13. El boton "Send" agrega la tarea a la
-// lista visible con JS del lado del cliente, pero sigue sin persistencia
-// real: nada se manda al backend, se pierde al recargar. El enunciado de
-// 1.13 solo exige que no haga falta enviarla todavia, no que el boton
-// sea inerte - el CRUD real (con backend) llega en un ejercicio posterior.
+// con la imagen cacheada (1.12) y el formulario + lista de tareas.
+//
+// Desde el ejercicio 2.2: las tareas ya no son hardcodeadas (1.13) ni se
+// agregan solo con JS del lado del cliente. El navegador le habla a
+// todo_app (GET / y POST /todos, server-side rendering) y es todo_app
+// quien internamente consulta/crea las tareas en todo-backend-svc.
 
 const express = require('express');
 const { ensureImage, imageExists, getImagePath } = require('./imageCache');
 
 const app = express();
+app.use(express.urlencoded({ extended: true }));
 
-// Lista fija, sin persistencia: 1.13 solo pide mostrar algunas tareas
-// de ejemplo, no leerlas de ningun lado.
-const HARDCODED_TODOS = [
-  'Aprender los fundamentos de Kubernetes',
-  'Desplegar la aplicacion en el cluster',
-  'Configurar volumenes persistentes',
-];
+const TODO_BACKEND_URL = 'http://todo-backend-svc:2345/todos';
+
+function escapeHtml(str) {
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+async function fetchTodos() {
+  try {
+    const response = await fetch(TODO_BACKEND_URL);
+    return await response.json();
+  } catch (err) {
+    console.error('Error consultando todo-backend-svc:', err);
+    return [];
+  }
+}
 
 app.get('/', async (req, res) => {
   try {
@@ -32,7 +46,8 @@ app.get('/', async (req, res) => {
     ? '<img src="/image" alt="Imagen aleatoria" />'
     : '<p>No se pudo cargar la imagen todavia.</p>';
 
-  const todosList = HARDCODED_TODOS.map((todo) => `<li>${todo}</li>`).join('\n');
+  const todos = await fetchTodos();
+  const todosList = todos.map((todo) => `<li>${escapeHtml(todo)}</li>`).join('\n');
 
   res.send(`
     <!DOCTYPE html>
@@ -53,34 +68,32 @@ app.get('/', async (req, res) => {
         <h1>To do App</h1>
         ${imageTag}
 
-        <form id="todo-form">
-          <input type="text" id="todo-input" maxlength="140" placeholder="Enter a new todo (max 140 characters)" />
-          <button type="button" id="todo-send">Send</button>
+        <form action="/todos" method="post">
+          <input type="text" name="content" maxlength="140" placeholder="Enter a new todo (max 140 characters)" required />
+          <button type="submit">Send</button>
         </form>
 
         <h2>Todos</h2>
-        <ul id="todo-list">
+        <ul>
           ${todosList}
         </ul>
-
-        <script>
-          document.getElementById('todo-send').addEventListener('click', () => {
-            const input = document.getElementById('todo-input');
-            const text = input.value.trim();
-            if (!text) {
-              return;
-            }
-
-            const li = document.createElement('li');
-            li.textContent = text;
-            document.getElementById('todo-list').appendChild(li);
-
-            input.value = '';
-          });
-        </script>
       </body>
     </html>
   `);
+});
+
+app.post('/todos', async (req, res) => {
+  try {
+    await fetch(TODO_BACKEND_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ content: req.body.content }),
+    });
+  } catch (err) {
+    console.error('Error creando la tarea en todo-backend-svc:', err);
+  }
+
+  res.redirect('/');
 });
 
 app.get('/image', (req, res) => {

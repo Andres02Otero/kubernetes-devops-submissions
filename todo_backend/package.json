@@ -1,0 +1,13 @@
+{
+  "name": "todo_backend",
+  "version": "1.0.1",
+  "private": true,
+  "description": "GET/POST /todos en memoria, consumido por todo_app (ejercicio 2.2)",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2"
+  }
+}

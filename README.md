@@ -31,3 +31,4 @@ k3d cluster create --port 8082:30080@agent:0 -p 8081:80@loadbalancer --agents 2
 ## Chapter 3 - More building blocks
 ### Networking between pods
 - [2.1](https://github.com/Andres02Otero/kubernetes-devops-submissions/tree/2.1)
+- [2.2](https://github.com/Andres02Otero/kubernetes-devops-submissions/tree/2.2)
