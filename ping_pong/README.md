@@ -6,6 +6,8 @@ Responde `pong <N>` a `GET /pingpong`, donde `N` es un contador en memoria que a
 
 Historial del contador: vivio en memoria (1.9) → se persistio en un `PersistentVolume` compartido con `log_output` (1.11) → **desde 2.1, vuelve a vivir solo en memoria**, y `log_output` lo consulta por HTTP a traves de `ping-pong-svc` en vez de leer un archivo compartido (el volumen compartido se elimino).
 
+**Desde el ejercicio 2.3**, esta app vive en el namespace `exercises` (no `default`) — ver `../namespaces/README.md`.
+
 ## Build the image
 
 ```bash
@@ -25,6 +27,8 @@ docker logs -f <container-id>
 ```
 
 ## Deploy with Kubernetes
+
+Requires the `exercises` namespace created first — see `../namespaces/README.md`.
 
 ```bash
 kubectl apply -f manifests/deployment.yaml

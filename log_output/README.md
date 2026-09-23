@@ -16,6 +16,8 @@ Ping / Pongs: 3
 
 That count's source changed over time: a `PersistentVolume` shared with `ping_pong` (1.11) → **since 2.1**, `reader` fetches it directly over HTTP from `ping-pong-svc` (`http://ping-pong-svc:3001/pings`), pod-to-pod via Kubernetes' internal DNS — no shared volume between the two apps anymore (it was removed, see `../persistent-volumes/README.md`). `ping_pong` must be deployed and reachable for this to work; on error, `reader` falls back to showing `0` instead of failing the whole response.
 
+**Since exercise 2.3**, this app lives in the `exercises` namespace (not `default`) — see `../namespaces/README.md`. Both `log-output-svc` and `ping-pong-svc` are in that same namespace, so the short DNS name `ping-pong-svc` above still resolves without changes; it would need the `<service>.<namespace>` form if they were split across namespaces.
+
 ## Build the images
 
 ```bash
@@ -32,6 +34,8 @@ docker push andres09otero/log-output-reader:1.1.0
 
 ## Deploy with Kubernetes
 
+Requires the `exercises` namespace created first — see `../namespaces/README.md`.
+
 ```bash
 kubectl apply -f manifests/deployment.yaml
 kubectl apply -f manifests/service.yaml
@@ -41,8 +45,8 @@ kubectl apply -f manifests/ingress.yaml
 ## View the logs
 
 ```bash
-kubectl logs -f <pod-name> -c writer
-kubectl logs -f <pod-name> -c reader
+kubectl logs -f <pod-name> -c writer -n exercises
+kubectl logs -f <pod-name> -c reader -n exercises
 ```
 
 `-c <container-name>` is required now that the Pod has more than one container.

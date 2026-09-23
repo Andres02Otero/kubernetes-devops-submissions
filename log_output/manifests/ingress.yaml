@@ -4,6 +4,7 @@ kind: Ingress
 
 metadata:
   name: log-output-ingress
+  namespace: exercises
 
 spec:
   rules:

@@ -4,6 +4,7 @@ kind: Service
 
 metadata:
   name: log-output-svc
+  namespace: exercises
 
 spec:
   type: ClusterIP

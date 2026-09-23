@@ -4,6 +4,7 @@ kind: Deployment
 
 metadata:
   name: ping-pong
+  namespace: exercises
 
 spec:
   replicas: 1

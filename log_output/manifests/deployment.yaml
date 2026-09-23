@@ -4,8 +4,9 @@ kind: Deployment
 
 metadata:
   name: log-output
+  namespace: exercises
 
-spec: 
+spec:
   replicas: 1
 
   selector:
