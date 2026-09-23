@@ -8,6 +8,8 @@ Desde el ejercicio 1.13, `GET /` tambien incluye un input (max 140 caracteres) +
 
 **Desde el ejercicio 2.2**, la lista ya no es hardcodeada: `todo_app` consulta `GET http://todo-backend-svc:2345/todos` (nuevo microservicio, ver `../todo_backend/`) y renderiza esas tareas server-side. El formulario ahora es un `<form>` real (`action="/todos" method="post"`) — al enviarlo, `todo_app` recibe el POST, se lo reenvia a `todo-backend`, y redirige a `/` para mostrar la lista actualizada (reemplaza el hack de JS del lado del cliente de 1.13, que no persistia nada de verdad).
 
+**Desde el ejercicio 2.4**, esta app vive en el namespace `project` (no `default`) — ver `../namespaces/README.md`. `todo-backend-svc` esta en el mismo namespace, asi que el nombre corto sigue resolviendo sin cambios de codigo.
+
 ## Build the image
 
 ```bash
@@ -28,7 +30,7 @@ docker logs -f <container-id>
 
 ## Deploy with Kubernetes
 
-Requires the `todo-app-image-pv`/`todo-app-image-pvc` applied first — see `../persistent-volumes/README.md`. Also requires `todo_backend` deployed and reachable at `todo-backend-svc:2345` — see `../todo_backend/README.md`.
+Requires the `project` namespace, the `todo-app-image-pv`/`todo-app-image-pvc` applied first — see `../persistent-volumes/README.md` and `../namespaces/README.md`. Also requires `todo_backend` deployed and reachable at `todo-backend-svc:2345` — see `../todo_backend/README.md`.
 
 ```bash
 kubectl apply -f manifests/deployment.yaml

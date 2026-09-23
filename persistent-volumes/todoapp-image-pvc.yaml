@@ -4,6 +4,7 @@ kind: PersistentVolumeClaim
 
 metadata:
   name: todo-app-image-pvc
+  namespace: project
 
 spec:
   storageClassName: todo-app-image-storage

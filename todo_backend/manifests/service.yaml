@@ -4,6 +4,7 @@ kind: Service
 
 metadata:
   name: todo-backend-svc
+  namespace: project
 
 spec:
   type: ClusterIP

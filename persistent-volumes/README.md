@@ -6,10 +6,19 @@ Both PVs here are `local`, tied to the node `k3d-k3s-default-agent-0` and backed
 
 ## `todo-app-image-pv` / `todo-app-image-pvc` (exercise 1.12)
 
-Used by `todo_app` to cache the random Picsum image so it survives Pod restarts and isn't re-fetched on every request.
+Used by `todo_app` to cache the random Picsum image so it survives Pod restarts and isn't re-fetched on every request. Since exercise 2.4, `todo-app-image-pvc` lives in the `project` namespace (see `../namespaces/README.md`); `todo-app-image-pv` itself has no namespace — PVs are cluster-scoped.
 
 ```bash
 docker exec k3d-k3s-default-agent-0 mkdir -p /tmp/kube-todo-images
+kubectl apply -f todoapp-image-pv.yaml
+kubectl apply -f todoapp-image-pvc.yaml
+```
+
+**Moving the PVC to a new namespace (2.4) requires deleting and recreating the PV, not just the PVC** — a `local` PV keeps a `claimRef` to whichever PVC last bound it, and once `Released` it won't auto-bind to a new PVC even with a matching `storageClassName` (same warning the course material gives about this exact scenario). The image files on disk (`/tmp/kube-todo-images` on the node) aren't affected by this — only the PV/PVC Kubernetes objects are:
+
+```bash
+kubectl delete pvc todo-app-image-pvc -n default
+kubectl delete pv todo-app-image-pv
 kubectl apply -f todoapp-image-pv.yaml
 kubectl apply -f todoapp-image-pvc.yaml
 ```

@@ -7,6 +7,8 @@ Guarda las tareas del proyecto (ejercicio 2.2). Estado en memoria (arranca vacio
 
 `ClusterIP` unicamente — no tiene Ingress, el navegador nunca le habla directo. Es `todo_app` quien lo consulta internamente por HTTP.
 
+Desde el ejercicio 2.4, vive en el namespace `project` (no `default`) — ver `../namespaces/README.md`.
+
 ## Build the image
 
 ```bash

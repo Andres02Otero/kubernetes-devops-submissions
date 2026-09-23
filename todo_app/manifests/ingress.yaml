@@ -4,6 +4,7 @@ kind: Ingress
 
 metadata:
   name: todo-app-ingress
+  namespace: project
 
 spec:
   rules:

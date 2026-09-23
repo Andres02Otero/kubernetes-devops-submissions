@@ -4,9 +4,22 @@ Cluster-wide, kept separate from any single app's `manifests/` folder — same r
 
 ## `exercises` (exercise 2.3)
 
-For `log_output` and `ping_pong` — every course exercise app that is not "the project". The project (`todo_app`, `todo_backend`) gets its own separate namespace in exercise 2.4, and stays in `default` until then.
+For `log_output` and `ping_pong` — every course exercise app that is not "the project".
 
 ```bash
 kubectl apply -f exercises-namespace.yaml
+```
+
+## `project` (exercise 2.4)
+
+For `todo_app` and `todo_backend`, plus the image `PersistentVolumeClaim` they depend on (`../persistent-volumes/todoapp-image-pvc.yaml` — the `PersistentVolume` itself stays cluster-scoped, PVs don't belong to a namespace).
+
+```bash
+kubectl apply -f project-namespace.yaml
+```
+
+## Verify
+
+```bash
 kubectl get ns
 ```
