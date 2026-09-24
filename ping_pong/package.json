@@ -1,10 +1,13 @@
 {
   "name": "ping_pong",
-  "version": "1.1.0",
+  "version": "2.0.0",
   "private": true,
-  "description": "Responde 'pong N' a GET /pingpong, cuenta las requests en memoria, y expone el contador por HTTP en GET /pings para otros pods (ejercicios 1.9, 2.1)",
+  "description": "Responde 'pong N' a GET /pingpong, guarda el contador en Postgres, y lo expone por HTTP en GET /pings para otros pods (ejercicios 1.9, 2.1, 2.7)",
   "main": "index.js",
   "scripts": {
     "start": "node index.js"
+  },
+  "dependencies": {
+    "pg": "^8.13.0"
   }
 }

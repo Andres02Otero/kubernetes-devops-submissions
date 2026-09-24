@@ -40,3 +40,6 @@ k3d cluster create --port 8082:30080@agent:0 -p 8081:80@loadbalancer --agents 2
 ### Configuring applications
 - [2.5](https://github.com/Andres02Otero/kubernetes-devops-submissions/tree/2.5)
 - [2.6](https://github.com/Andres02Otero/kubernetes-devops-submissions/tree/2.6)
+
+### StatefulSets and Jobs
+- [2.7](https://github.com/Andres02Otero/kubernetes-devops-submissions/tree/2.7)
