@@ -18,18 +18,27 @@ That count's source changed over time: a `PersistentVolume` shared with `ping_po
 
 **Since exercise 2.3**, this app lives in the `exercises` namespace (not `default`) — see `../namespaces/README.md`. Both `log-output-svc` and `ping-pong-svc` are in that same namespace, so the short DNS name `ping-pong-svc` above still resolves without changes; it would need the `<service>.<namespace>` form if they were split across namespaces.
 
+**Since exercise 2.5**, `reader` also reads a `ConfigMap` (`log-output-config`, `manifests/configmap.yaml`) two different ways: `information.txt` mounted as a file at `/usr/src/app/config/information.txt`, and `MESSAGE` passed as a plain env var (`configMapKeyRef`). Full response now:
+
+```
+file content: this text is from file
+env variable: MESSAGE=hello world
+2020-03-30T12:15:17.705Z: 8523ecb1-c716-4cb6-a044-b9e83bb98e43
+Ping / Pongs: 3
+```
+
 ## Build the images
 
 ```bash
 docker build -t andres09otero/log-output-writer:1.0.0 writer/
-docker build -t andres09otero/log-output-reader:1.1.0 reader/
+docker build -t andres09otero/log-output-reader:1.2.0 reader/
 ```
 
 ## Push
 
 ```bash
 docker push andres09otero/log-output-writer:1.0.0
-docker push andres09otero/log-output-reader:1.1.0
+docker push andres09otero/log-output-reader:1.2.0
 ```
 
 ## Deploy with Kubernetes
@@ -37,6 +46,7 @@ docker push andres09otero/log-output-reader:1.1.0
 Requires the `exercises` namespace created first — see `../namespaces/README.md`.
 
 ```bash
+kubectl apply -f manifests/configmap.yaml
 kubectl apply -f manifests/deployment.yaml
 kubectl apply -f manifests/service.yaml
 kubectl apply -f manifests/ingress.yaml

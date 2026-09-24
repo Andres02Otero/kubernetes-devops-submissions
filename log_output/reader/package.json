@@ -1,8 +1,8 @@
 {
   "name": "log-output-reader",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "private": true,
-  "description": "Lee el archivo compartido con writer y consulta ping-pong-svc por HTTP para el contador (ejercicios 1.10, 2.1)",
+  "description": "Lee el archivo compartido con writer, consulta ping-pong-svc por HTTP, y lee el ConfigMap montado + env var (ejercicios 1.10, 2.1, 2.5)",
   "main": "index.js",
   "scripts": {
     "start": "node index.js"

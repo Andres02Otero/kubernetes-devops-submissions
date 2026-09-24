@@ -23,6 +23,10 @@ spec:
         - name: shared-status
           emptyDir: {}
 
+        - name: config
+          configMap:
+            name: log-output-config
+
       containers:
         - name: writer
           image: andres09otero/log-output-writer:1.0.0
@@ -31,11 +35,18 @@ spec:
               mountPath: /usr/src/app/files
 
         - name: reader
-          image: andres09otero/log-output-reader:1.1.0
+          image: andres09otero/log-output-reader:1.2.0
           env:
             - name: PORT
               value: "3000"
+            - name: MESSAGE
+              valueFrom:
+                configMapKeyRef:
+                  name: log-output-config
+                  key: MESSAGE
           volumeMounts:
             - name: shared-status
               mountPath: /usr/src/app/files
+            - name: config
+              mountPath: /usr/src/app/config
 

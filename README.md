@@ -36,3 +36,6 @@ k3d cluster create --port 8082:30080@agent:0 -p 8081:80@loadbalancer --agents 2
 ### Organizing a cluster
 - [2.3](https://github.com/Andres02Otero/kubernetes-devops-submissions/tree/2.3)
 - [2.4](https://github.com/Andres02Otero/kubernetes-devops-submissions/tree/2.4)
+
+### Configuring applications
+- [2.5](https://github.com/Andres02Otero/kubernetes-devops-submissions/tree/2.5)

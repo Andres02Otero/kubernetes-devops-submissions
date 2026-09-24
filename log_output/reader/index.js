@@ -9,6 +9,10 @@ const FILE_PATH = path.join('/usr/src/app/files', 'status.log');
 // (comunicacion pod-a-pod via el DNS de Kubernetes: <service>:<port>).
 const PING_PONG_URL = 'http://ping-pong-svc:3001/pings';
 
+// Desde el ejercicio 2.5: el ConfigMap log-output-config se monta como
+// archivo (information.txt) y ademas se pasa como env var (MESSAGE).
+const CONFIG_FILE_PATH = path.join('/usr/src/app/config', 'information.txt');
+
 // Devuelve la ultima linea escrita por el contenedor "writer" (el status
 // mas reciente), no el archivo completo.
 function readLastLine() {
@@ -19,6 +23,14 @@ function readLastLine() {
     const content = fs.readFileSync(FILE_PATH, 'utf-8').trim();
     const lines = content.split('\n');
     return lines[lines.length - 1];
+}
+
+function readConfigFile() {
+    if (!fs.existsSync(CONFIG_FILE_PATH)) {
+        return '';
+    }
+
+    return fs.readFileSync(CONFIG_FILE_PATH, 'utf-8').trim();
 }
 
 async function fetchPingPongCount() {
@@ -33,11 +45,13 @@ async function fetchPingPongCount() {
 }
 
 const server = http.createServer(async (req, res) => {
+    const fileContent = readConfigFile();
+    const message = process.env.MESSAGE || '';
     const status = readLastLine();
     const count = await fetchPingPongCount();
 
     res.writeHead(200, { 'Content-Type': 'text/plain' });
-    res.end(`${status}\nPing / Pongs: ${count}`);
+    res.end(`file content: ${fileContent}\nenv variable: MESSAGE=${message}\n${status}\nPing / Pongs: ${count}`);
 });
 
 const PORT = process.env.PORT || 3000;
