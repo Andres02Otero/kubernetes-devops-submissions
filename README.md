@@ -43,3 +43,4 @@ k3d cluster create --port 8082:30080@agent:0 -p 8081:80@loadbalancer --agents 2
 
 ### StatefulSets and Jobs
 - [2.7](https://github.com/Andres02Otero/kubernetes-devops-submissions/tree/2.7)
+- [2.8](https://github.com/Andres02Otero/kubernetes-devops-submissions/tree/2.8)

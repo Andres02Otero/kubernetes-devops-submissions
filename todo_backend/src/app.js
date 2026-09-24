@@ -1,23 +1,25 @@
 // app.js
 //
-// Microservicio nuevo del ejercicio 2.2: guarda las tareas del proyecto.
+// Microservicio del ejercicio 2.2: guarda las tareas del proyecto.
 // todo_app (el que sirve el HTML) le habla a este servicio por HTTP,
 // el navegador nunca le pega directo (no tiene Ingress).
+//
+// Desde el ejercicio 2.8: las tareas se guardan en Postgres, no en
+// memoria (ver db.js). El formato que devuelve GET /todos no cambio
+// (array de strings), asi que todo_app no necesito ningun cambio.
 
 const express = require('express');
+const { pool } = require('./db');
 
 const app = express();
 app.use(express.json());
 
-// En memoria por ahora: se pierde si el Pod se reinicia. El enunciado
-// dice explicito que la base de datos real llega mas adelante.
-let todos = [];
-
-app.get('/todos', (req, res) => {
-  res.json(todos);
+app.get('/todos', async (req, res) => {
+  const result = await pool.query('SELECT content FROM todos ORDER BY id');
+  res.json(result.rows.map((row) => row.content));
 });
 
-app.post('/todos', (req, res) => {
+app.post('/todos', async (req, res) => {
   const content = ((req.body && req.body.content) || '').trim();
 
   if (!content || content.length > 140) {
@@ -25,7 +27,7 @@ app.post('/todos', (req, res) => {
     return;
   }
 
-  todos.push(content);
+  await pool.query('INSERT INTO todos (content) VALUES ($1)', [content]);
   res.status(201).json({ content });
 });
 
