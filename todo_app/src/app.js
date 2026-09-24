@@ -7,6 +7,9 @@
 // agregan solo con JS del lado del cliente. El navegador le habla a
 // todo_app (GET / y POST /todos, server-side rendering) y es todo_app
 // quien internamente consulta/crea las tareas en todo-backend-svc.
+//
+// Desde el ejercicio 2.6: la URL de todo-backend ya no esta hardcodeada,
+// viene de TODO_BACKEND_URL (definida en manifests/deployment.yaml).
 
 const express = require('express');
 const { ensureImage, imageExists, getImagePath } = require('./imageCache');
@@ -14,7 +17,7 @@ const { ensureImage, imageExists, getImagePath } = require('./imageCache');
 const app = express();
 app.use(express.urlencoded({ extended: true }));
 
-const TODO_BACKEND_URL = 'http://todo-backend-svc:2345/todos';
+const TODO_BACKEND_URL = `${process.env.TODO_BACKEND_URL || 'http://todo-backend-svc:2345'}/todos`;
 
 function escapeHtml(str) {
   return str

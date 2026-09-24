@@ -10,16 +10,18 @@ Desde el ejercicio 1.13, `GET /` tambien incluye un input (max 140 caracteres) +
 
 **Desde el ejercicio 2.4**, esta app vive en el namespace `project` (no `default`) — ver `../namespaces/README.md`. `todo-backend-svc` esta en el mismo namespace, asi que el nombre corto sigue resolviendo sin cambios de codigo.
 
+**Desde el ejercicio 2.6**, no queda ninguna URL/path hardcodeado en el codigo fuente — `TODO_BACKEND_URL`, `IMAGE_CACHE_DIR` y `PICSUM_URL` se definen en `manifests/deployment.yaml` (con fallback en el codigo solo para poder correrlo suelto en local sin Kubernetes). `IMAGE_CACHE_DIR` debe coincidir con el `mountPath` del volumen en ese mismo archivo. `MAXLENGTH=140` y los 10 minutos de cache del `imageCache.js` **no** se movieron a env vars — son reglas de negocio del ejercicio (1.13, 1.12), no configuracion de infraestructura que deba variar entre entornos.
+
 ## Build the image
 
 ```bash
-docker build -t andres09otero/todo-app:1.4.0 .
+docker build -t andres09otero/todo-app:1.5.0 .
 ```
 
 ## Run the container
 
 ```bash
-docker run -d -e PORT=3000 -p 3000:3000 -v $(pwd)/image-cache-local:/usr/src/app/image-cache andres09otero/todo-app:1.4.0
+docker run -d -e PORT=3000 -e TODO_BACKEND_URL=http://todo-backend-svc:2345 -p 3000:3000 -v $(pwd)/image-cache-local:/usr/src/app/image-cache andres09otero/todo-app:1.5.0
 ```
 
 ## View the logs

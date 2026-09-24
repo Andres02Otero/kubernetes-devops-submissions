@@ -7,11 +7,17 @@
 // refresh se dispara en segundo plano para que la SIGUIENTE peticion ya
 // tenga una nueva. Por eso ensureImage() nunca bloquea en el caso de
 // cache vencido, solo en el caso de que no exista ninguna imagen aun.
+//
+// Desde el ejercicio 2.6: el path del cache y la URL de Picsum ya no
+// estan hardcodeados, vienen de IMAGE_CACHE_DIR y PICSUM_URL (definidas
+// en manifests/deployment.yaml). IMAGE_CACHE_DIR debe coincidir con el
+// mountPath del volumen en ese mismo archivo.
 
 const fs = require('fs');
 const path = require('path');
 
-const CACHE_DIR = '/usr/src/app/image-cache';
+const CACHE_DIR = process.env.IMAGE_CACHE_DIR || '/usr/src/app/image-cache';
+const PICSUM_URL = process.env.PICSUM_URL || 'https://picsum.photos/1200';
 const IMAGE_PATH = path.join(CACHE_DIR, 'image.jpg');
 const META_PATH = path.join(CACHE_DIR, 'fetched-at.txt');
 
@@ -36,7 +42,7 @@ function isStale() {
 }
 
 async function fetchNewImage() {
-    const response = await fetch('https://picsum.photos/1200');
+    const response = await fetch(PICSUM_URL);
     const buffer = Buffer.from(await response.arrayBuffer());
 
     fs.mkdirSync(CACHE_DIR, { recursive: true });

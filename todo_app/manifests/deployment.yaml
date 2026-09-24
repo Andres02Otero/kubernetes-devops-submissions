@@ -26,10 +26,16 @@ spec:
 
       containers:
         - name: todo-app
-          image: andres09otero/todo-app:1.4.0
+          image: andres09otero/todo-app:1.5.0
           env:
             - name: PORT
               value: "3000"
+            - name: TODO_BACKEND_URL
+              value: "http://todo-backend-svc:2345"
+            - name: IMAGE_CACHE_DIR
+              value: "/usr/src/app/image-cache"
+            - name: PICSUM_URL
+              value: "https://picsum.photos/1200"
           volumeMounts:
             - name: image-cache
               mountPath: /usr/src/app/image-cache
