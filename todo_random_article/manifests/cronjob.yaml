@@ -1,0 +1,22 @@
+apiVersion: batch/v1
+
+kind: CronJob
+
+metadata:
+  name: todo-random-article
+  namespace: project
+
+spec:
+  schedule: "0 * * * *"
+
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+            - name: todo-random-article
+              image: andres09otero/todo-random-article:1.0.0
+              env:
+                - name: TODO_BACKEND_URL
+                  value: "http://todo-backend-svc:2345"
+          restartPolicy: Never
