@@ -11,16 +11,18 @@ Desde el ejercicio 2.4, vive en el namespace `project` (no `default`) — ver `.
 
 **Desde el ejercicio 2.8**, las tareas se guardan en Postgres real (`manifests/postgres.yaml`, `StatefulSet` de 1 replica con `Service` headless `postgres-svc`, mismo patron que `ping_pong` en 2.7), no en memoria — sobreviven a que el Pod se reinicie. La conexion (host/puerto/usuario/base) se pasa por env vars definidas en el Deployment, y la contraseña viene de un `Secret` (`manifests/secret.yaml`), no queda hardcodeada en ningun lado. Al arrancar, la app espera con reintentos a que Postgres este disponible antes de aceptar requests.
 
+**Desde el ejercicio 2.10**, cada request queda logueado a stdout: un log de acceso general (metodo + path) y, en `POST /todos`, un log explicito de si la tarea se acepto o se rechazo (y por que — el limite de 140 caracteres ya existia desde 2.2). Esos logs de stdout son justo lo que recolecta el stack de Grafana/Loki, ver `../monitoring/README.md`.
+
 ## Build the image
 
 ```bash
-docker build -t andres09otero/todo-backend:2.0.0 .
+docker build -t andres09otero/todo-backend:2.1.0 .
 ```
 
 ## Run the container
 
 ```bash
-docker run -d -e PORT=3000 -e PGHOST=postgres-svc -e PGPORT=5432 -e PGUSER=postgres -e PGPASSWORD=changeme -e PGDATABASE=postgres -p 3000:3000 andres09otero/todo-backend:2.0.0
+docker run -d -e PORT=3000 -e PGHOST=postgres-svc -e PGPORT=5432 -e PGUSER=postgres -e PGPASSWORD=changeme -e PGDATABASE=postgres -p 3000:3000 andres09otero/todo-backend:2.1.0
 ```
 
 ## Deploy with Kubernetes

@@ -1,8 +1,8 @@
 {
   "name": "todo_backend",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "private": true,
-  "description": "GET/POST /todos persistido en Postgres, consumido por todo_app (ejercicios 2.2, 2.8)",
+  "description": "GET/POST /todos persistido en Postgres, consumido por todo_app (ejercicios 2.2, 2.8), con request logging (2.10)",
   "main": "src/index.js",
   "scripts": {
     "start": "node src/index.js"
