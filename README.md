@@ -28,9 +28,11 @@ Requiere Gateway API habilitada en el cluster (ver `log_output/README.md`). Las 
 
 ## Despliegue automatico con GitHub Actions (3.6)
 
-`.github/workflows/main.yaml` corre en cada push a `main`: construye las imagenes de `todo_app`, `todo_backend` y `todo_random_article`, las sube a Artifact Registry (`europe-north1-docker.pkg.dev/<proyecto>/dwk-images/`, tag `<rama>-<sha>`) y despliega con `kustomize edit set image` + `kustomize build . | kubectl apply -f -`. Autentica con Workload Identity Federation (sin llaves guardadas).
+`.github/workflows/main.yaml` corre en cada push a una rama (los tags no lo disparan): construye las imagenes de `todo_app`, `todo_backend` y `todo_random_article`, las sube a Artifact Registry (`europe-north1-docker.pkg.dev/<proyecto>/dwk-images/`, tag `<rama>-<sha>`) y despliega con `kustomize edit set image` + `kustomize build . | kubectl apply -f -`. Autentica con Workload Identity Federation (sin llaves guardadas).
 
 Secrets, en el Environment `GKE_PROJECT` del repo (Settings -> Environments): `GKE_PROJECT` (ID del proyecto de Google Cloud), `SERVICE_ACCOUNT` (`github-actions-sa@<proyecto>.iam.gserviceaccount.com`) y `WORKLOAD_IDENTITY_PROVIDER` (`projects/<numero>/locations/global/workloadIdentityPools/github-pool/providers/github-provider`).
+
+**Un entorno por rama (3.7):** `main` se despliega en el namespace `project`; cualquier otra rama, en un namespace con el nombre de la rama. El workflow lo hace con `kustomize edit set namespace`, que reescribe el namespace de todos los recursos (y el objeto `Namespace`, asi que `apply` lo crea). Supone ramas con nombres validos como namespace (minusculas, numeros y guiones). Cada entorno trae su propio Gateway, o sea un balanceador de Google por rama: borrar los entornos que ya no se usen.
 
 `todo_app` usa `strategy: Recreate` porque su PVC es `ReadWriteOnce` y un `RollingUpdate` podria dejar el pod nuevo atascado en otro nodo.
 
@@ -85,4 +87,5 @@ Secrets, en el Environment `GKE_PROJECT` del repo (Settings -> Environments): `G
 ### Deployment Pipeline
 - [3.5](https://github.com/Andres02Otero/kubernetes-devops-submissions/tree/3.5)
 - [3.6](https://github.com/Andres02Otero/kubernetes-devops-submissions/tree/3.6)
+- [3.7](https://github.com/Andres02Otero/kubernetes-devops-submissions/tree/3.7)
 

@@ -1,11 +1,15 @@
 name: Release project
 
-# Cada push a main construye las tres imagenes del proyecto, las sube a
-# Artifact Registry y despliega todo con Kustomize en GKE (ejercicio 3.6).
+# Cada push construye las tres imagenes del proyecto, las sube a Artifact
+# Registry y despliega todo con Kustomize en GKE (ejercicio 3.6). Desde 3.7
+# cada rama tiene su propio entorno: main va al namespace project y las
+# demas a un namespace con el nombre de la rama.
 on:
   push:
+    # '**' son solo ramas: un push de tag (p. ej. 3.7) no dispara el
+    # workflow, y un tag con puntos ni siquiera es un namespace valido.
     branches:
-      - main
+      - '**'
 
 permissions:
   contents: read
@@ -16,7 +20,6 @@ env:
   GKE_ZONE: europe-north1-b
   REGISTRY: europe-north1-docker.pkg.dev
   REPOSITORY: dwk-images
-  NAMESPACE: project
   BRANCH: ${{ github.ref_name }}
 
 jobs:
@@ -62,6 +65,16 @@ jobs:
           echo "IMAGE_BASE=$REGISTRY/$PROJECT_ID/$REPOSITORY" >> "$GITHUB_ENV"
           echo "IMAGE_TAG=$BRANCH-$GITHUB_SHA" >> "$GITHUB_ENV"
 
+      # main conserva el namespace project; cualquier otra rama usa su
+      # propio nombre (el enunciado supone ramas con nombres validos).
+      - name: Choose the namespace
+        run: |-
+          if [ "$BRANCH" = "main" ]; then
+            echo "NAMESPACE=project" >> "$GITHUB_ENV"
+          else
+            echo "NAMESPACE=$BRANCH" >> "$GITHUB_ENV"
+          fi
+
       - name: Build
         run: |-
           docker build --tag "$IMAGE_BASE/todo-app:$IMAGE_TAG" todo_app
@@ -79,8 +92,11 @@ jobs:
 
       # Los deployments traen el nombre de Docker Hub; Kustomize lo
       # reemplaza por la imagen recien publicada sin tocar los manifiestos.
+      # set namespace reescribe el namespace de todos los recursos, incluido
+      # el objeto Namespace de la lista, asi que apply lo crea si no existe.
       - name: Deploy
         run: |-
+          kustomize edit set namespace "$NAMESPACE"
           kustomize edit set image andres09otero/todo-app="$IMAGE_BASE/todo-app:$IMAGE_TAG"
           kustomize edit set image andres09otero/todo-backend="$IMAGE_BASE/todo-backend:$IMAGE_TAG"
           kustomize edit set image andres09otero/todo-random-article="$IMAGE_BASE/todo-random-article:$IMAGE_TAG"
