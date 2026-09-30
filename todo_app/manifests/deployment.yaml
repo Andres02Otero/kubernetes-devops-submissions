@@ -9,6 +9,12 @@ metadata:
 spec:
   replicas: 1
 
+  # El PVC es ReadWriteOnce: con RollingUpdate el pod nuevo arranca antes
+  # de que el viejo suelte el disco y, si cae en otro nodo, se queda
+  # atascado. Recreate apaga el viejo primero (ejercicio 3.6).
+  strategy:
+    type: Recreate
+
   selector:
     matchLabels:
       app: todo-app

@@ -26,6 +26,14 @@ kubectl get pods,pvc,gateway -n project
 
 Requiere Gateway API habilitada en el cluster (ver `log_output/README.md`). Las imagenes y sus tags siguen definidos en cada `deployment.yaml`.
 
+## Despliegue automatico con GitHub Actions (3.6)
+
+`.github/workflows/main.yaml` corre en cada push a `main`: construye las imagenes de `todo_app`, `todo_backend` y `todo_random_article`, las sube a Artifact Registry (`europe-north1-docker.pkg.dev/<proyecto>/dwk-images/`, tag `<rama>-<sha>`) y despliega con `kustomize edit set image` + `kustomize build . | kubectl apply -f -`. Autentica con Workload Identity Federation (sin llaves guardadas).
+
+Secrets, en el Environment `GKE_PROJECT` del repo (Settings -> Environments): `GKE_PROJECT` (ID del proyecto de Google Cloud), `SERVICE_ACCOUNT` (`github-actions-sa@<proyecto>.iam.gserviceaccount.com`) y `WORKLOAD_IDENTITY_PROVIDER` (`projects/<numero>/locations/global/workloadIdentityPools/github-pool/providers/github-provider`).
+
+`todo_app` usa `strategy: Recreate` porque su PVC es `ReadWriteOnce` y un `RollingUpdate` podria dejar el pod nuevo atascado en otro nodo.
+
 ## Chapter 2 - Kubernetes Basics
 ### First Deploy
 - [1.1](https://github.com/Andres02Otero/kubernetes-devops-submissions/tree/1.1)
@@ -76,4 +84,5 @@ Requiere Gateway API habilitada en el cluster (ver `log_output/README.md`). Las 
 
 ### Deployment Pipeline
 - [3.5](https://github.com/Andres02Otero/kubernetes-devops-submissions/tree/3.5)
+- [3.6](https://github.com/Andres02Otero/kubernetes-devops-submissions/tree/3.6)
 
