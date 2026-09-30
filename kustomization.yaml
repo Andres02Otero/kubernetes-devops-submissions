@@ -1,0 +1,25 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+# Solo el proyecto (todo_app + todo_backend + todo_random_article) para
+# GKE. Las apps de ejercicios (log_output, ping_pong) no entran aqui.
+# Kustomize ordena por tipo (Namespace primero, luego PVC/Secret/Service,
+# etc.), asi que el orden de esta lista es solo de lectura.
+resources:
+  - namespaces/project-namespace.yaml
+
+  # todo_backend + su Postgres
+  - todo_backend/manifests/secret.yaml
+  - todo_backend/manifests-gke/postgres.yaml
+  - todo_backend/manifests/deployment.yaml
+  - todo_backend/manifests/service.yaml
+
+  # todo_app (PVC de GKE, no el PV local de k3d) + acceso por Gateway API
+  - persistent-volumes/gke/todoapp-image-pvc.yaml
+  - todo_app/manifests/deployment.yaml
+  - todo_app/manifests/service.yaml
+  - todo_app/manifests-gke/gateway.yaml
+  - todo_app/manifests-gke/route.yaml
+
+  # todo_random_article
+  - todo_random_article/manifests/cronjob.yaml
