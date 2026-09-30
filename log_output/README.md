@@ -69,13 +69,17 @@ Port chain: `localhost:8081` → k3d load balancer → Ingress (`log-output-ingr
 
 Since exercise 1.9, `log-output-ingress` also routes `/pingpong` to the `ping_pong` app (separate deployment, see `../ping_pong/`) — it must be deployed for that path to work. This Ingress and `todo-app-ingress` both claim path `/`, so only one can be applied at a time (see `../todo_app/README.md`).
 
-## Deploy en GKE (ejercicio 3.2)
+## Deploy en GKE (ejercicios 3.2 y 3.3)
 
-`manifests-gke/service.yaml` es el unico cambio: el Service pasa de `ClusterIP` a `NodePort`, que es lo que exige el Ingress de GKE. El resto (`configmap.yaml`, `deployment.yaml` e `ingress.yaml`) se reutiliza de `manifests/` tal cual — el Ingress no fija `ingressClassName`, asi que en GKE lo toma el controlador por defecto (balanceador L7 de Google) y en k3d lo toma Traefik. Rutas: `/` -> `log-output-svc`, `/pingpong` -> `ping-pong-svc`.
+- **3.2 (tag `3.2`):** Services `NodePort` + el `Ingress` de `manifests/ingress.yaml`.
+- **3.3:** el Ingress se reemplaza por **Gateway API**. Los Services vuelven a `ClusterIP` (los mismos `manifests/service.yaml`, por eso ya no hay `service.yaml` en `manifests-gke/`). `manifests-gke/gateway.yaml` define el balanceador (clase `gke-l7-global-external-managed`, HTTP en el 80) y `manifests-gke/route.yaml` el enrutamiento: `/pingpong` -> `ping-pong-svc:3001`, `/` -> `log-output-svc:2345`. Ambos recursos estan en el namespace `exercises`, junto a los Services, y sirven a las dos apps.
+
+Requiere habilitar Gateway API en el cluster una vez (`gcloud container clusters update dwk-cluster --location=europe-north1-b --gateway-api=standard`).
 
 ```bash
 kubectl apply -f manifests/configmap.yaml
 kubectl apply -f manifests/deployment.yaml
-kubectl apply -f manifests-gke/service.yaml
-kubectl apply -f manifests/ingress.yaml
+kubectl apply -f manifests/service.yaml
+kubectl apply -f manifests-gke/gateway.yaml
+kubectl apply -f manifests-gke/route.yaml
 ```
