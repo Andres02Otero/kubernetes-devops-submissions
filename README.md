@@ -34,6 +34,8 @@ Secrets, en el Environment `GKE_PROJECT` del repo (Settings -> Environments): `G
 
 **Un entorno por rama (3.7):** `main` se despliega en el namespace `project`; cualquier otra rama, en un namespace con el nombre de la rama. El workflow lo hace con `kustomize edit set namespace`, que reescribe el namespace de todos los recursos (y el objeto `Namespace`, asi que `apply` lo crea). Supone ramas con nombres validos como namespace (minusculas, numeros y guiones). Cada entorno trae su propio Gateway, o sea un balanceador de Google por rama: borrar los entornos que ya no se usen.
 
+**Borrar una rama borra su entorno (3.8):** `.github/workflows/delete-env.yaml` se dispara con el evento `delete`, borra el Gateway y luego el namespace con el nombre de la rama. Ignora tags, `main` y nombres de namespaces protegidos. Como el evento `delete` lee el workflow de la rama por defecto, el archivo tiene que estar en `main`. Mismos secrets del Environment `GKE_PROJECT`.
+
 `todo_app` usa `strategy: Recreate` porque su PVC es `ReadWriteOnce` y un `RollingUpdate` podria dejar el pod nuevo atascado en otro nodo.
 
 ## Chapter 2 - Kubernetes Basics
@@ -88,4 +90,5 @@ Secrets, en el Environment `GKE_PROJECT` del repo (Settings -> Environments): `G
 - [3.5](https://github.com/Andres02Otero/kubernetes-devops-submissions/tree/3.5)
 - [3.6](https://github.com/Andres02Otero/kubernetes-devops-submissions/tree/3.6)
 - [3.7](https://github.com/Andres02Otero/kubernetes-devops-submissions/tree/3.7)
+- [3.8](https://github.com/Andres02Otero/kubernetes-devops-submissions/tree/3.8)
 

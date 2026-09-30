@@ -1,0 +1,61 @@
+name: Delete branch environment
+
+# Ejercicio 3.8: al borrar una rama se borra su entorno (el namespace con
+# su nombre, creado por main.yaml). Ojo: los workflows del evento delete
+# se leen de la rama por defecto, asi que este archivo tiene que estar
+# en main para que funcione.
+on: delete
+
+permissions:
+  contents: read
+  id-token: write
+
+env:
+  GKE_CLUSTER: dwk-cluster
+  GKE_ZONE: europe-north1-b
+  # Se pasa por env y no dentro del script para que un nombre de rama raro
+  # no pueda inyectar comandos.
+  BRANCH: ${{ github.event.ref }}
+
+jobs:
+  delete-environment:
+    name: Delete environment
+    runs-on: ubuntu-latest
+    # El evento delete tambien salta al borrar tags, y main vive en el
+    # namespace project: nunca se borra.
+    if: github.event.ref_type == 'branch' && github.event.ref != 'main'
+    environment: GKE_PROJECT
+    env:
+      PROJECT_ID: ${{ secrets.GKE_PROJECT }}
+
+    steps:
+      - uses: google-github-actions/auth@v3
+        with:
+          workload_identity_provider: "${{ secrets.WORKLOAD_IDENTITY_PROVIDER }}"
+          service_account: "${{ secrets.SERVICE_ACCOUNT }}"
+
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v3
+
+      - name: Get GKE credentials
+        uses: google-github-actions/get-gke-credentials@v3
+        with:
+          cluster_name: ${{ env.GKE_CLUSTER }}
+          project_id: ${{ env.PROJECT_ID }}
+          location: ${{ env.GKE_ZONE }}
+
+      # Red de seguridad: una rama con el nombre de un namespace que no es
+      # un entorno (exercises, kube-system...) no debe arrastrarlo.
+      - name: Delete the namespace
+        run: |-
+          case "$BRANCH" in
+            default|exercises|monitoring|kube-*|gke-*|gmp-*)
+              echo "La rama '$BRANCH' coincide con un namespace protegido, no se borra nada."
+              exit 0
+              ;;
+          esac
+          # Primero el Gateway: asi Google libera el balanceador antes de
+          # que el namespace desaparezca y nada quede cobrando huerfano.
+          kubectl delete gateway --all -n "$BRANCH" --ignore-not-found --wait=true
+          kubectl delete namespace "$BRANCH" --ignore-not-found --wait=true
+          kubectl get namespaces
