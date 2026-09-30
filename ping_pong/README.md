@@ -40,3 +40,22 @@ kubectl apply -f manifests/service.yaml
 Wait for `postgres-ss-0` to be `Running` before (or while) `ping-pong` starts — the app retries on its own, but `kubectl get pods -n exercises` should eventually show both `Running`.
 
 Este Service es `ClusterIP` (sin acceso directo desde fuera) — el acceso publico se hace a traves del Ingress compartido con `log_output`, ver `../log_output/manifests/ingress.yaml` y su README.
+
+## Deploy en GKE (ejercicio 3.1)
+
+`manifests-gke/` solo contiene lo que cambia respecto a k3d; `secret.yaml` y `deployment.yaml` se reutilizan de `manifests/` tal cual (misma imagen `2.0.0`, no hubo cambios de codigo). Diferencias:
+
+- `service.yaml`: tipo `LoadBalancer` en el puerto 80 (en k3d es `ClusterIP` detras del Ingress).
+- `postgres.yaml`: sin `storageClassName`, para que GKE aprovisione el disco con su clase por defecto.
+
+```bash
+kubectl apply -f ../namespaces/exercises-namespace.yaml
+kubectl apply -f manifests/secret.yaml
+kubectl apply -f manifests-gke/postgres.yaml
+kubectl apply -f manifests/deployment.yaml
+kubectl apply -f manifests-gke/service.yaml
+kubectl get svc -n exercises --watch   # esperar el EXTERNAL-IP
+curl http://<EXTERNAL-IP>/pingpong
+```
+
+Borrar el cluster al terminar para no gastar creditos: `gcloud container clusters delete dwk-cluster --zone=europe-north1-b`.

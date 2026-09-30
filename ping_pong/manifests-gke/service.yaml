@@ -1,0 +1,20 @@
+apiVersion: v1
+
+kind: Service
+
+metadata:
+  name: ping-pong-svc
+  namespace: exercises
+
+spec:
+  # GKE le pide a Google un balanceador L4 con IP publica (ejercicio 3.1).
+  type: LoadBalancer
+
+  selector:
+    app: ping-pong
+
+  ports:
+    # Puerto 80 para poder entrar desde el navegador sin escribir puerto.
+    - port: 80
+      protocol: TCP
+      targetPort: 3000
