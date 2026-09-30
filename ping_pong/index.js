@@ -53,6 +53,16 @@ async function getCurrentCount() {
 }
 
 const server = http.createServer(async (req, res) => {
+    // Desde el ejercicio 3.2: el Ingress de GKE hace health checks con
+    // GET / al backend y solo lo marca sano si responde 200, sin importar
+    // bajo que ruta lo exponga el Ingress (/pingpong). Sin esto respondia
+    // 404 aqui y el Ingress devolvia 502. No toca el contador.
+    if (req.method === 'GET' && req.url === '/') {
+        res.writeHead(200, { 'Content-Type': 'text/plain' });
+        res.end('ok');
+        return;
+    }
+
     if (req.method === 'GET' && req.url === '/pingpong') {
         const previousCount = await incrementAndGetPrevious();
         res.writeHead(200, { 'Content-Type': 'text/plain' });

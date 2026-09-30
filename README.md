@@ -52,3 +52,4 @@ k3d cluster create --port 8082:30080@agent:0 -p 8081:80@loadbalancer --agents 2
 ## Chapter 4 - To the cloud
 ### Introduction to Google Kubernetes Engine
 - [3.1](https://github.com/Andres02Otero/kubernetes-devops-submissions/tree/3.1)
+- [3.2](https://github.com/Andres02Otero/kubernetes-devops-submissions/tree/3.2)

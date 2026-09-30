@@ -68,3 +68,14 @@ Requires a k3d cluster created with port `80` mapped to a host port (see root RE
 Port chain: `localhost:8081` → k3d load balancer → Ingress (`log-output-ingress`, port 80) → Service (`log-output-svc`, `port: 2345`) → `reader` container (`targetPort: 3000`, the only one listening on a port in this Pod).
 
 Since exercise 1.9, `log-output-ingress` also routes `/pingpong` to the `ping_pong` app (separate deployment, see `../ping_pong/`) — it must be deployed for that path to work. This Ingress and `todo-app-ingress` both claim path `/`, so only one can be applied at a time (see `../todo_app/README.md`).
+
+## Deploy en GKE (ejercicio 3.2)
+
+`manifests-gke/service.yaml` es el unico cambio: el Service pasa de `ClusterIP` a `NodePort`, que es lo que exige el Ingress de GKE. El resto (`configmap.yaml`, `deployment.yaml` e `ingress.yaml`) se reutiliza de `manifests/` tal cual — el Ingress no fija `ingressClassName`, asi que en GKE lo toma el controlador por defecto (balanceador L7 de Google) y en k3d lo toma Traefik. Rutas: `/` -> `log-output-svc`, `/pingpong` -> `ping-pong-svc`.
+
+```bash
+kubectl apply -f manifests/configmap.yaml
+kubectl apply -f manifests/deployment.yaml
+kubectl apply -f manifests-gke/service.yaml
+kubectl apply -f manifests/ingress.yaml
+```

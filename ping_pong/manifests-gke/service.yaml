@@ -7,14 +7,15 @@ metadata:
   namespace: exercises
 
 spec:
-  # GKE le pide a Google un balanceador L4 con IP publica (ejercicio 3.1).
-  type: LoadBalancer
+  # Desde 3.2: NodePort porque el Ingress de GKE lo exige (en 3.1 era
+  # LoadBalancer). Puerto 3001 igual que en k3d: log_output y el Ingress
+  # ya apuntan a ping-pong-svc:3001.
+  type: NodePort
 
   selector:
     app: ping-pong
 
   ports:
-    # Puerto 80 para poder entrar desde el navegador sin escribir puerto.
-    - port: 80
+    - port: 3001
       protocol: TCP
       targetPort: 3000
