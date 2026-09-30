@@ -69,10 +69,12 @@ Port chain: `localhost:8081` → k3d load balancer → Ingress (`log-output-ingr
 
 Since exercise 1.9, `log-output-ingress` also routes `/pingpong` to the `ping_pong` app (separate deployment, see `../ping_pong/`) — it must be deployed for that path to work. This Ingress and `todo-app-ingress` both claim path `/`, so only one can be applied at a time (see `../todo_app/README.md`).
 
-## Deploy en GKE (ejercicios 3.2 y 3.3)
+## Deploy en GKE (ejercicios 3.2 a 3.4)
 
 - **3.2 (tag `3.2`):** Services `NodePort` + el `Ingress` de `manifests/ingress.yaml`.
 - **3.3:** el Ingress se reemplaza por **Gateway API**. Los Services vuelven a `ClusterIP` (los mismos `manifests/service.yaml`, por eso ya no hay `service.yaml` en `manifests-gke/`). `manifests-gke/gateway.yaml` define el balanceador (clase `gke-l7-global-external-managed`, HTTP en el 80) y `manifests-gke/route.yaml` el enrutamiento: `/pingpong` -> `ping-pong-svc:3001`, `/` -> `log-output-svc:2345`. Ambos recursos estan en el namespace `exercises`, junto a los Services, y sirven a las dos apps.
+
+- **3.4:** `route.yaml` reescribe `/pingpong` -> `/` con un filtro `URLRewrite` (`ReplacePrefixMatch`), de modo que `ping_pong` responde en `/` y no conoce la URL publica.
 
 Requiere habilitar Gateway API en el cluster una vez (`gcloud container clusters update dwk-cluster --location=europe-north1-b --gateway-api=standard`).
 

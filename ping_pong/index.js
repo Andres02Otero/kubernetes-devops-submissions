@@ -53,17 +53,12 @@ async function getCurrentCount() {
 }
 
 const server = http.createServer(async (req, res) => {
-    // Desde el ejercicio 3.2: el Ingress de GKE hace health checks con
-    // GET / al backend y solo lo marca sano si responde 200, sin importar
-    // bajo que ruta lo exponga el Ingress (/pingpong). Sin esto respondia
-    // 404 aqui y el Ingress devolvia 502. No toca el contador.
+    // Desde el ejercicio 3.4 la app responde en / y no sabe nada de
+    // /pingpong: esa ruta solo existe en el cluster y el HTTPRoute la
+    // reescribe a / antes de llegar aqui (ver log_output/manifests-gke/route.yaml).
+    // El health check del balanceador ya no puede usar /, porque cada
+    // chequeo incrementaria el contador; usa /pings (ver manifests-gke/healthcheck.yaml).
     if (req.method === 'GET' && req.url === '/') {
-        res.writeHead(200, { 'Content-Type': 'text/plain' });
-        res.end('ok');
-        return;
-    }
-
-    if (req.method === 'GET' && req.url === '/pingpong') {
         const previousCount = await incrementAndGetPrevious();
         res.writeHead(200, { 'Content-Type': 'text/plain' });
         res.end(`pong ${previousCount}`);

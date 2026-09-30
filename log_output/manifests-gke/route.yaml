@@ -15,10 +15,18 @@ spec:
   rules:
     # Gana la coincidencia de prefijo mas largo, por eso /pingpong no se
     # lo come la regla de /.
+    # Desde 3.4 el filtro reescribe /pingpong -> / antes de llegar a la app:
+    # la URL publica vive aqui y ping_pong solo conoce /.
     - matches:
         - path:
             type: PathPrefix
             value: /pingpong
+      filters:
+        - type: URLRewrite
+          urlRewrite:
+            path:
+              type: ReplacePrefixMatch
+              replacePrefixMatch: /
       backendRefs:
         - name: ping-pong-svc
           port: 3001

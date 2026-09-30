@@ -1,6 +1,6 @@
 # Ping Pong App
 
-Responde `pong <N>` a `GET /pingpong`, donde `N` es un contador que aumenta con cada request.
+Responde `pong <N>` a `GET /` (hasta 3.3 era `/pingpong`; desde 3.4 el `HTTPRoute` del cluster reescribe `/pingpong` -> `/`), donde `N` es un contador que aumenta con cada request.
 
 `GET /pings` devuelve solo el numero actual del contador (sin incrementar, sin el prefijo `pong `) — pensado para que otros pods lo consulten por HTTP, no para el navegador.
 
@@ -11,13 +11,13 @@ Historial del contador: vivio en memoria (1.9) → se persistio en un `Persisten
 ## Build the image
 
 ```bash
-docker build -t andres09otero/ping-pong:2.1.0 .
+docker build -t andres09otero/ping-pong:3.0.0 .
 ```
 
 ## Run the container
 
 ```bash
-docker run -d -e PORT=3000 -e PGHOST=postgres-svc -e PGPORT=5432 -e PGUSER=postgres -e PGPASSWORD=changeme -e PGDATABASE=postgres -p 3000:3000 andres09otero/ping-pong:2.1.0
+docker run -d -e PORT=3000 -e PGHOST=postgres-svc -e PGPORT=5432 -e PGUSER=postgres -e PGPASSWORD=changeme -e PGDATABASE=postgres -p 3000:3000 andres09otero/ping-pong:3.0.0
 ```
 
 ## View the logs
@@ -35,20 +35,25 @@ kubectl apply -f manifests/secret.yaml
 kubectl apply -f manifests/postgres.yaml
 kubectl apply -f manifests/deployment.yaml
 kubectl apply -f manifests/service.yaml
+kubectl apply -f manifests-gke/healthcheck.yaml
 ```
 
 Wait for `postgres-ss-0` to be `Running` before (or while) `ping-pong` starts — the app retries on its own, but `kubectl get pods -n exercises` should eventually show both `Running`.
 
 Este Service es `ClusterIP` (sin acceso directo desde fuera) — el acceso publico se hace a traves del Ingress compartido con `log_output`, ver `../log_output/manifests/ingress.yaml` y su README.
 
-## Deploy en GKE (ejercicios 3.1, 3.2 y 3.3)
+## Deploy en GKE (ejercicios 3.1 a 3.4)
 
 `manifests-gke/` solo contiene lo que cambia respecto a k3d; `secret.yaml` y `deployment.yaml` se reutilizan de `manifests/`. Diferencias:
 
 - `service.yaml` (ya no existe en `manifests-gke/`): en 3.1 era `LoadBalancer` en el puerto 80 (tag `3.1`), en 3.2 `NodePort` en el 3001 porque el Ingress de GKE lo exige (tag `3.2`). **Desde 3.3 con Gateway API vuelve a ser `ClusterIP`**, o sea el mismo `manifests/service.yaml` de k3d.
 - `postgres.yaml`: sin `storageClassName`, para que GKE aprovisione el disco con su clase por defecto.
 
-**Cambio de codigo en 3.2 (imagen `2.1.0`):** `GET /` responde `200 ok` sin tocar el contador. El Ingress de GKE hace health checks a `/` del backend y, si no recibe 200, devuelve 502 aunque la app se sirva en `/pingpong`.
+**Cambios de codigo:**
+- **3.2 (`2.1.0`):** `GET /` respondia `200 ok` sin tocar el contador, para el health check del Ingress.
+- **3.4 (`3.0.0`, cambio incompatible):** la app responde el `pong N` en `/` y ya no tiene ruta `/pingpong`. Ese prefijo solo existe fuera de la app: el `HTTPRoute` (`../log_output/manifests-gke/route.yaml`) lo reescribe a `/` con un filtro `URLRewrite`. Como `/` ahora incrementa el contador, el health check del Gateway se mueve a `/pings` con `manifests-gke/healthcheck.yaml` (un `HealthCheckPolicy` propio de GKE); si siguiera apuntando a `/`, cada chequeo sumaria un ping.
+
+**Ojo con k3d:** el Ingress de `../log_output/manifests/ingress.yaml` manda `/pingpong` tal cual, sin reescribir, asi que con la imagen `3.0.0` ese path daria 404 en k3d. Solo vale para el despliegue en GKE.
 
 ```bash
 kubectl apply -f ../namespaces/exercises-namespace.yaml
@@ -56,6 +61,7 @@ kubectl apply -f manifests/secret.yaml
 kubectl apply -f manifests-gke/postgres.yaml
 kubectl apply -f manifests/deployment.yaml
 kubectl apply -f manifests/service.yaml
+kubectl apply -f manifests-gke/healthcheck.yaml
 ```
 
 El acceso publico es por el Gateway compartido con `log_output`, ver `../log_output/README.md`.
