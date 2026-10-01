@@ -1,1 +1,5 @@
 node_modules/
+
+# Llaves de cuentas de servicio: nunca al repo (ejercicio 3.10)
+key.json
+*-key.json

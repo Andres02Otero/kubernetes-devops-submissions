@@ -35,3 +35,9 @@ kubectl apply -f manifests/service.yaml
 ```
 
 Espera a que `postgres-ss-0` este `Running` antes de (o mientras) `todo-backend` arranca — la app reintenta sola, pero conviene confirmar con `kubectl get pods -n project`.
+
+## Backup diario a Google Cloud Storage (ejercicio 3.10)
+
+`manifests-gke/backup-cronjob.yaml` es un `CronJob` (03:00 UTC) con dos contenedores oficiales: un `initContainer` con `postgres:16-alpine` que corre `pg_dump` (formato custom) contra `postgres-svc` y un contenedor `google/cloud-sdk` que sube el `.dump` a `gs://dwk-gke-510204-todo-backups/<namespace>/`. La llave de la cuenta de servicio viene del Secret `storage-sa-key`, creado a mano con `kubectl` y nunca versionado.
+
+Restaurar un respaldo: `pg_restore --clean --if-exists -d postgres archivo.dump`.

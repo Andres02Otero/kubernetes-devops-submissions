@@ -13,6 +13,7 @@ resources:
   - todo_backend/manifests-gke/postgres.yaml
   - todo_backend/manifests/deployment.yaml
   - todo_backend/manifests/service.yaml
+  - todo_backend/manifests-gke/backup-cronjob.yaml
 
   # todo_app (PVC de GKE, no el PV local de k3d) + acceso por Gateway API
   - persistent-volumes/gke/todoapp-image-pvc.yaml
