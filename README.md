@@ -8,36 +8,6 @@ Cluster created with host ports mapped for NodePort/Ingress access:
 k3d cluster create --port 8082:30080@agent:0 -p 8081:80@loadbalancer --agents 2
 ```
 
-## Deploy del proyecto en GKE con Kustomize (3.5)
-
-`kustomization.yaml` en la raiz lista los recursos del proyecto (`todo_app`, `todo_backend`, `todo_random_article`) y reemplaza los `kubectl apply -f` sueltos por un solo comando. Usa las variantes GKE donde el despliegue en k3d no sirve:
-
-- `todo_backend/manifests-gke/postgres.yaml`: sin `storageClassName: local-path`.
-- `persistent-volumes/gke/todoapp-image-pvc.yaml`: PVC sin clase ni PV a mano (GKE crea el disco).
-- `todo_app/manifests-gke/gateway.yaml` + `route.yaml`: acceso por Gateway API en el namespace `project` (en k3d es el Ingress de `todo_app/manifests/`).
-
-Las apps de ejercicios (`log_output`, `ping_pong`) no estan incluidas.
-
-```bash
-kubectl kustomize .     # ver el YAML resultante sin aplicar nada
-kubectl apply -k .      # desplegar todo
-kubectl get pods,pvc,gateway -n project
-```
-
-Requiere Gateway API habilitada en el cluster (ver `log_output/README.md`). Las imagenes y sus tags siguen definidos en cada `deployment.yaml`.
-
-## Despliegue automatico con GitHub Actions (3.6)
-
-`.github/workflows/main.yaml` corre en cada push a una rama (los tags no lo disparan): construye las imagenes de `todo_app`, `todo_backend` y `todo_random_article`, las sube a Artifact Registry (`europe-north1-docker.pkg.dev/<proyecto>/dwk-images/`, tag `<rama>-<sha>`) y despliega con `kustomize edit set image` + `kustomize build . | kubectl apply -f -`. Autentica con Workload Identity Federation (sin llaves guardadas).
-
-Secrets, en el Environment `GKE_PROJECT` del repo (Settings -> Environments): `GKE_PROJECT` (ID del proyecto de Google Cloud), `SERVICE_ACCOUNT` (`github-actions-sa@<proyecto>.iam.gserviceaccount.com`) y `WORKLOAD_IDENTITY_PROVIDER` (`projects/<numero>/locations/global/workloadIdentityPools/github-pool/providers/github-provider`).
-
-**Un entorno por rama (3.7):** `main` se despliega en el namespace `project`; cualquier otra rama, en un namespace con el nombre de la rama. El workflow lo hace con `kustomize edit set namespace`, que reescribe el namespace de todos los recursos (y el objeto `Namespace`, asi que `apply` lo crea). Supone ramas con nombres validos como namespace (minusculas, numeros y guiones). Cada entorno trae su propio Gateway, o sea un balanceador de Google por rama: borrar los entornos que ya no se usen.
-
-**Borrar una rama borra su entorno (3.8):** `.github/workflows/delete-env.yaml` se dispara con el evento `delete`, borra el Gateway y luego el namespace con el nombre de la rama. Ignora tags, `main` y nombres de namespaces protegidos. Como el evento `delete` lee el workflow de la rama por defecto, el archivo tiene que estar en `main`. Mismos secrets del Environment `GKE_PROJECT`.
-
-`todo_app` usa `strategy: Recreate` porque su PVC es `ReadWriteOnce` y un `RollingUpdate` podria dejar el pod nuevo atascado en otro nodo.
-
 ## Chapter 2 - Kubernetes Basics
 ### First Deploy
 - [1.1](https://github.com/Andres02Otero/kubernetes-devops-submissions/tree/1.1)
@@ -92,3 +62,46 @@ Secrets, en el Environment `GKE_PROJECT` del repo (Settings -> Environments): `G
 - [3.7](https://github.com/Andres02Otero/kubernetes-devops-submissions/tree/3.7)
 - [3.8](https://github.com/Andres02Otero/kubernetes-devops-submissions/tree/3.8)
 
+### GKE features
+- [3.9](https://github.com/Andres02Otero/kubernetes-devops-submissions/tree/3.9)
+
+---
+
+## Exercise 3.9 - DBaaS vs DIY
+
+On GKE we can run Postgres in two ways: keep our own instance as a StatefulSet on top of PersistentVolumeClaims (DIY, what the project uses today), or hand the job to a managed service such as Google Cloud SQL (DBaaS). Both are common in production and both are reasonable for a small project, but they trade off very differently once you look at who does the work and who pays for it.
+
+| Criterion | DIY (StatefulSet + PVC) | DBaaS (Cloud SQL) |
+|---|---|---|
+| Initial setup work | Manifests already exist (StatefulSet, headless Service, Secret, `volumeClaimTemplate`) and GKE provisions the disk on its own. | Enable the Cloud SQL Admin API, create the instance, then connect the cluster to it (Cloud SQL Auth Proxy or private IP, credentials, IAM). More moving parts. |
+| Initial cost | Only a small disk on a cluster we already pay for: cents per month at our size. | A small shared-core instance is billed continuously, even when the app is idle. For a student project that can be a noticeable part of the credits. |
+| Ongoing maintenance | We own it: Postgres upgrades, image patches, tuning, monitoring, pod restarts. | Google owns the engine: patching, minor upgrades, disk management, node failures. We keep schema and access control. |
+| Backups | None out of the box; we build them (see below). | Automated backups are a setting, on-demand backups are one command. |
+| Restore | Manual: find the dump, start a Postgres, restore, repoint the backend. | A first-class operation: pick a backup or timestamp and Cloud SQL builds a new instance. |
+| High availability | Single replica. Our own replication and failover would be significant work. | Regional HA is an option: a standby in another zone with automatic failover. |
+| Scaling | Manual (resize the disk, add replicas ourselves). Irrelevant at our data volume. | Vertical scaling by changing the instance size (it restarts); read replicas are supported. |
+| Security / access | We manage the Secret and the Service; traffic stays inside the cluster. | IAM, TLS, private IP or the Auth Proxy. Less to get wrong, more Google-specific concepts. |
+| Portability | Runs on any Kubernetes cluster; only the StorageClass is cluster-specific (we leave it unset so GKE picks its default). | Tied to Google Cloud; moving means exporting data and rewriting the connection layer. |
+| Per-branch environments | Almost free: each branch namespace gets its own Postgres pod and small disk, which fits our GitHub Actions + Kustomize flow. | Awkward and costly: one instance per branch is slow and expensive, so we would share one instance with a database per environment. |
+
+### Backups
+
+**DIY.** The plan for exercise 3.10 is a CronJob that runs `pg_dump` against `postgres-svc` and uploads the dump to a Cloud Storage bucket every 24 hours. It is simple and transparent, but restoring is entirely manual. Snapshots of the persistent disk are a coarser safety net, and anything like point-in-time recovery would mean running a tool such as pgBackRest or Barman ourselves, which is realistic for a team and heavy for one person.
+
+**DBaaS.** Backups are part of the product: automated daily backups, on-demand backups, and optional point-in-time recovery with a retention window. Restoring is part of the product too. The catch is that this convenience is what we pay for continuously.
+
+### Pros and cons
+
+**DIY**
+- Pros: cheap at our scale, portable, fits the per-branch model, teaches how Postgres behaves on Kubernetes.
+- Cons: we own patching, upgrades, monitoring and backups; no HA; restores are manual and easy to get wrong.
+
+**DBaaS (Cloud SQL)**
+- Pros: automated backups and easy restores, managed patching, optional HA and point-in-time recovery, smaller operational surface.
+- Cons: billed even when idle, one instance per branch is impractical, Google lock-in, hides mechanics we are here to learn.
+
+### Conclusion
+
+For this project (a solo learning exercise with tiny data, minimal traffic, a limited credit budget and a workflow that already spins up a full environment per branch) DIY is the better fit: each branch gets its own Postgres almost for free, we stay portable, and we practice the operational skills the course teaches. Cloud SQL becomes the better choice once the data matters: a production service with real users, a team with no time to operate a database, or a need for HA and point-in-time recovery that we do not want to build. The trade-off is money and lock-in on one side, time and risk on the other.
+
+Cost figures here are approximate and change over time; check the [Google Cloud pricing calculator](https://cloud.google.com/products/calculator) before deciding.
