@@ -41,6 +41,13 @@ spec:
           initContainers:
             - name: dump
               image: postgres:16-alpine
+              resources:
+                requests:
+                  cpu: "10m"
+                  memory: "32Mi"
+                limits:
+                  cpu: "200m"
+                  memory: "128Mi"
               command: ["/bin/sh", "-c"]
               args:
                 - |
@@ -67,6 +74,14 @@ spec:
           containers:
             - name: upload
               image: google/cloud-sdk:587.0.0-alpine
+              # gcloud (Python) es el mas pesado de los dos: necesita ~100Mi solo para arrancar.
+              resources:
+                requests:
+                  cpu: "50m"
+                  memory: "96Mi"
+                limits:
+                  cpu: "250m"
+                  memory: "384Mi"
               command: ["/bin/sh", "-c"]
               args:
                 - |

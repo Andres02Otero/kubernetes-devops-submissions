@@ -44,6 +44,14 @@ spec:
       containers:
         - name: postgres
           image: postgres:16-alpine
+          # Postgres en reposo usa ~30Mi; el limite deja margen para pg_dump y para crecer (ejercicio 3.11).
+          resources:
+            requests:
+              cpu: "50m"
+              memory: "64Mi"
+            limits:
+              cpu: "250m"
+              memory: "256Mi"
           ports:
             - name: postgres
               containerPort: 5432

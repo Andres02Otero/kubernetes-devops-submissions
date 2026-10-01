@@ -33,6 +33,14 @@ spec:
       containers:
         - name: todo-app
           image: andres09otero/todo-app:1.5.0
+          # Valores medidos con kubectl top en reposo y con margen para picos (ejercicio 3.11); los nodos son e2-small, asi que los requests van bajos.
+          resources:
+            requests:
+              cpu: "25m"
+              memory: "48Mi"
+            limits:
+              cpu: "150m"
+              memory: "128Mi"
           env:
             - name: PORT
               value: "3000"
