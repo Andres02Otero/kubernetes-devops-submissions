@@ -21,7 +21,7 @@ spec:
     spec:
       containers:
         - name: todo-backend
-          image: andres09otero/todo-backend:2.2.1
+          image: andres09otero/todo-backend:3.0.0
           # Ejercicio 4.2. Readiness: rota o sin Postgres = sin trafico.
           readinessProbe:
             initialDelaySeconds: 5

@@ -21,6 +21,10 @@
 //   - /readyz (readinessProbe): rota o sin conexion a Postgres = no
 //     listo, el Service deja de mandarle trafico pero no lo reinicia.
 // POST /break simula la falla que pide el ejercicio (boton en todo_app).
+//
+// Desde el ejercicio 4.5 (3.0.0, cambio incompatible): cada tarea tiene un
+// campo done. GET /todos ya no devuelve un array de strings sino de
+// objetos { id, content, done }, y PUT /todos/:id cambia el done.
 
 const express = require('express');
 const { pool, ensureSchema, isDatabaseReachable } = require('./db');
@@ -79,8 +83,8 @@ app.use('/todos', (req, res, next) => {
 app.get('/todos', async (req, res) => {
   try {
     await ensureSchema();
-    const result = await pool.query('SELECT content FROM todos ORDER BY id');
-    res.json(result.rows.map((row) => row.content));
+    const result = await pool.query('SELECT id, content, done FROM todos ORDER BY id');
+    res.json(result.rows);
   } catch (err) {
     console.error(`GET /todos failed: ${err.message}`);
     res.status(503).json({ error: 'database not available' });
@@ -98,15 +102,49 @@ app.post('/todos', async (req, res) => {
 
   try {
     await ensureSchema();
-    await pool.query('INSERT INTO todos (content) VALUES ($1)', [content]);
+    const result = await pool.query(
+      'INSERT INTO todos (content) VALUES ($1) RETURNING id, content, done',
+      [content],
+    );
+    console.log(`Accepted todo: "${content}"`);
+    res.status(201).json(result.rows[0]);
   } catch (err) {
     console.error(`POST /todos failed: ${err.message}`);
     res.status(503).json({ error: 'database not available' });
+  }
+});
+
+// Body { "done": true } o { "done": false }: permite marcar y desmarcar,
+// aunque el frontend por ahora solo ofrece "Mark done".
+app.put('/todos/:id', async (req, res) => {
+  const id = Number(req.params.id);
+  const done = req.body && req.body.done;
+
+  // 2147483647 es el maximo de SERIAL (int4); por encima Postgres daria
+  // error y se responderia un 503 enganoso en vez de un 400.
+  if (!Number.isInteger(id) || id < 1 || id > 2147483647 || typeof done !== 'boolean') {
+    res.status(400).json({ error: 'id must be a positive integer and done must be true or false' });
     return;
   }
 
-  console.log(`Accepted todo: "${content}"`);
-  res.status(201).json({ content });
+  try {
+    await ensureSchema();
+    const result = await pool.query(
+      'UPDATE todos SET done = $1 WHERE id = $2 RETURNING id, content, done',
+      [done, id],
+    );
+
+    if (result.rowCount === 0) {
+      res.status(404).json({ error: `todo ${id} not found` });
+      return;
+    }
+
+    console.log(`Todo ${id} marked as ${done ? 'done' : 'not done'}`);
+    res.json(result.rows[0]);
+  } catch (err) {
+    console.error(`PUT /todos/${id} failed: ${err.message}`);
+    res.status(503).json({ error: 'database not available' });
+  }
 });
 
 module.exports = app;

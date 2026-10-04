@@ -15,12 +15,18 @@
 // todo-backend que se marque como roto (POST /break), aviso en la pagina
 // cuando el backend no responde bien, y GET /healthz para la
 // readinessProbe de este Deployment (listo solo si todo-backend lo esta).
+//
+// Desde el ejercicio 4.5: todo-backend devuelve objetos { id, content,
+// done }. Cada tarea pendiente tiene un boton "Mark done" que hace un PUT
+// /todos/<id> real desde el navegador (un <form> HTML solo sabe GET/POST,
+// por eso va con fetch) y todo_app lo reenvia como PUT al backend.
 
 const express = require('express');
 const { ensureImage, imageExists, getImagePath } = require('./imageCache');
 
 const app = express();
 app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
 
 const BACKEND_BASE_URL = process.env.TODO_BACKEND_URL || 'http://todo-backend-svc:2345';
 const TODO_BACKEND_URL = `${BACKEND_BASE_URL}/todos`;
@@ -83,7 +89,10 @@ app.get('/', async (req, res) => {
   const brokenBanner = failed
     ? '<p class="broken">The app is not working: the backend is not answering. If it was broken with the button, Kubernetes restarts it in a few seconds, reload the page.</p>'
     : '';
-  const todosList = todos.map((todo) => `<li>${escapeHtml(todo)}</li>`).join('\n');
+  const todosList = todos.map((todo) => (todo.done
+    ? `<li class="done"><span>${escapeHtml(todo.content)}</span><span class="done-label">Done</span></li>`
+    : `<li><span>${escapeHtml(todo.content)}</span><button class="mark-done" data-id="${todo.id}">Mark done</button></li>`
+  )).join('\n');
 
   res.send(`
     <!DOCTYPE html>
@@ -97,7 +106,11 @@ app.get('/', async (req, res) => {
           input[type="text"] { padding: 0.5rem; border: 2px solid #2e7d32; border-radius: 4px; width: 60%; }
           button { padding: 0.5rem 1rem; border: none; border-radius: 4px; background: #2e7d32; color: white; cursor: pointer; }
           ul { list-style: none; padding: 0; text-align: left; }
-          li { background: #f5f5f5; border-left: 4px solid #2e7d32; padding: 0.5rem 1rem; margin: 0.5rem 0; }
+          li { background: #f5f5f5; border-left: 4px solid #2e7d32; padding: 0.5rem 1rem; margin: 0.5rem 0; display: flex; justify-content: space-between; align-items: center; gap: 1rem; }
+          li.done { border-left-color: #9e9e9e; color: #757575; }
+          li.done span:first-child { text-decoration: line-through; }
+          .done-label { color: #2e7d32; font-weight: bold; }
+          .mark-done { background: #1565c0; padding: 0.3rem 0.7rem; white-space: nowrap; }
           .broken { background: #ffebee; border-left: 4px solid #c62828; padding: 0.5rem 1rem; text-align: left; }
           .break-form { margin-top: 2rem; }
           .break-form button { background: #c62828; }
@@ -121,6 +134,20 @@ app.get('/', async (req, res) => {
         <form class="break-form" action="/break" method="post">
           <button type="submit">Break the app</button>
         </form>
+
+        <script>
+          document.querySelectorAll('.mark-done').forEach((button) => {
+            button.addEventListener('click', async () => {
+              button.disabled = true;
+              await fetch('/todos/' + button.dataset.id, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ done: true }),
+              });
+              window.location.reload();
+            });
+          });
+        </script>
       </body>
     </html>
   `);
@@ -138,6 +165,21 @@ app.post('/todos', async (req, res) => {
   }
 
   res.redirect('/');
+});
+
+app.put('/todos/:id', async (req, res) => {
+  try {
+    const response = await fetch(`${TODO_BACKEND_URL}/${encodeURIComponent(req.params.id)}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ done: req.body && req.body.done }),
+    });
+    // Se reenvia tal cual el status y la respuesta del backend (400, 404...).
+    res.status(response.status).json(await response.json());
+  } catch (err) {
+    console.error('Error actualizando la tarea en todo-backend-svc:', err);
+    res.status(502).json({ error: 'todo-backend not reachable' });
+  }
 });
 
 app.post('/break', async (req, res) => {

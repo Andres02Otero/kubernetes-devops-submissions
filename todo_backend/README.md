@@ -2,8 +2,9 @@
 
 Guarda las tareas del proyecto (ejercicio 2.2).
 
-- `GET /todos`: devuelve la lista de tareas (JSON, array de strings).
+- `GET /todos`: devuelve la lista de tareas (JSON, array de strings; **desde 4.5**, array de objetos `{ "id", "content", "done" }`).
 - `POST /todos`: crea una tarea nueva. Body JSON `{ "content": "..." }`, maximo 140 caracteres.
+- `PUT /todos/<id>` (**desde 4.5**): body JSON `{ "done": true }` (o `false`) marca la tarea como hecha (o pendiente). 400 si el id o el body no son validos, 404 si la tarea no existe.
 
 `ClusterIP` unicamente — no tiene Ingress, el navegador nunca le habla directo. Es `todo_app` quien lo consulta internamente por HTTP.
 
@@ -23,16 +24,18 @@ La app ya no espera a Postgres con reintentos ni se cae si no lo encuentra: arra
 
 **Persistencia de Postgres corregida en 4.2:** hasta entonces el PVC se montaba en `/var/lib/postgresql`, pero la imagen guarda la base en su propio volumen anonimo `/var/lib/postgresql/data`, asi que los datos se perdian al recrear el Pod. Ahora el PVC se monta en `/var/lib/postgresql/data` con `PGDATA=/var/lib/postgresql/data/pgdata` (los discos de GKE traen `lost+found` y `initdb` exige un directorio vacio). Mismo arreglo en `ping_pong`.
 
+**Desde el ejercicio 4.5 (`3.0.0`, cambio incompatible por el nuevo formato de `GET /todos`)** cada tarea tiene una columna `done` (`BOOLEAN`, por defecto `false`). Las bases creadas antes se migran solas con `ALTER TABLE ... ADD COLUMN IF NOT EXISTS`, y sus tareas quedan pendientes.
+
 ## Build the image
 
 ```bash
-docker build -t andres09otero/todo-backend:2.2.1 .
+docker build -t andres09otero/todo-backend:3.0.0 .
 ```
 
 ## Run the container
 
 ```bash
-docker run -d -e PORT=3000 -e PGHOST=postgres-svc -e PGPORT=5432 -e PGUSER=postgres -e PGPASSWORD=changeme -e PGDATABASE=postgres -p 3000:3000 andres09otero/todo-backend:2.2.1
+docker run -d -e PORT=3000 -e PGHOST=postgres-svc -e PGPORT=5432 -e PGUSER=postgres -e PGPASSWORD=changeme -e PGDATABASE=postgres -p 3000:3000 andres09otero/todo-backend:3.0.0
 ```
 
 ## Deploy with Kubernetes

@@ -31,9 +31,14 @@ async function ensureSchema(force = false) {
     await pool.query(`
         CREATE TABLE IF NOT EXISTS todos (
             id SERIAL PRIMARY KEY,
-            content TEXT NOT NULL
+            content TEXT NOT NULL,
+            done BOOLEAN NOT NULL DEFAULT false
         )
     `);
+    // Desde el ejercicio 4.5: las bases creadas antes no tienen la columna
+    // done y CREATE TABLE IF NOT EXISTS no la agrega; esta migracion si,
+    // y las tareas que ya existian quedan como pendientes.
+    await pool.query('ALTER TABLE todos ADD COLUMN IF NOT EXISTS done BOOLEAN NOT NULL DEFAULT false');
     if (!schemaReady) {
         console.log('Connected to postgres and ready');
     }

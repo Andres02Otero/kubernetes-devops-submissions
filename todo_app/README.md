@@ -14,16 +14,18 @@ Desde el ejercicio 1.13, `GET /` tambien incluye un input (max 140 caracteres) +
 
 **Desde el ejercicio 4.2 (`1.6.0`)** la pagina tiene un boton rojo **"Break the app"** que llama `POST /break` de `todo-backend` (ver `../todo_backend/README.md`); mientras el backend esta roto o no responde, la pagina muestra un aviso en rojo. `GET /healthz` responde 200 solo si `todo-backend` esta listo (`/readyz`), y es la `readinessProbe` de este Deployment. No tiene `livenessProbe`: reiniciar el frontend no arregla un backend roto.
 
+**Desde el ejercicio 4.5 (`1.7.0`)** cada tarea pendiente tiene un boton **"Mark done"** que hace `PUT /todos/<id>` con `{ "done": true }` desde el navegador (con `fetch`, porque un `<form>` HTML solo envia GET/POST); `todo_app` lo reenvia como `PUT` a `todo-backend`. Las tareas hechas se muestran tachadas con la etiqueta "Done".
+
 ## Build the image
 
 ```bash
-docker build -t andres09otero/todo-app:1.6.0 .
+docker build -t andres09otero/todo-app:1.7.0 .
 ```
 
 ## Run the container
 
 ```bash
-docker run -d -e PORT=3000 -e TODO_BACKEND_URL=http://todo-backend-svc:2345 -p 3000:3000 -v $(pwd)/image-cache-local:/usr/src/app/image-cache andres09otero/todo-app:1.6.0
+docker run -d -e PORT=3000 -e TODO_BACKEND_URL=http://todo-backend-svc:2345 -p 3000:3000 -v $(pwd)/image-cache-local:/usr/src/app/image-cache andres09otero/todo-app:1.7.0
 ```
 
 ## View the logs
