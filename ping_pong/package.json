@@ -1,6 +1,6 @@
 {
   "name": "ping_pong",
-  "version": "3.1.0",
+  "version": "3.1.1",
   "private": true,
   "description": "Responde 'pong N' a GET /, guarda el contador en Postgres, y lo expone por HTTP en GET /pings para otros pods (ejercicios 1.9, 2.1, 2.7, 3.4, 4.1)",
   "main": "index.js",

@@ -21,7 +21,7 @@ spec:
     spec:
       containers:
         - name: ping-pong
-          image: andres09otero/ping-pong:3.1.0
+          image: andres09otero/ping-pong:3.1.1
           # Listo solo si /healthz logra hablar con Postgres; mientras no,
           # el Pod sigue Running pero sale de los endpoints de ping-pong-svc.
           readinessProbe:

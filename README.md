@@ -71,6 +71,7 @@ k3d cluster create --port 8082:30080@agent:0 -p 8081:80@loadbalancer --agents 2
 ## Chapter 5 - GitOps and friends
 ### Update Strategies and Prometheus
 - [4.1](https://github.com/Andres02Otero/kubernetes-devops-submissions/tree/4.1)
+- [4.2](https://github.com/Andres02Otero/kubernetes-devops-submissions/tree/4.2)
 
 ---
 

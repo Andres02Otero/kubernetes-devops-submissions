@@ -9,20 +9,30 @@ Guarda las tareas del proyecto (ejercicio 2.2).
 
 Desde el ejercicio 2.4, vive en el namespace `project` (no `default`) — ver `../namespaces/README.md`.
 
-**Desde el ejercicio 2.8**, las tareas se guardan en Postgres real (`manifests/postgres.yaml`, `StatefulSet` de 1 replica con `Service` headless `postgres-svc`, mismo patron que `ping_pong` en 2.7), no en memoria — sobreviven a que el Pod se reinicie. La conexion (host/puerto/usuario/base) se pasa por env vars definidas en el Deployment, y la contraseña viene de un `Secret` (`manifests/secret.yaml`), no queda hardcodeada en ningun lado. Al arrancar, la app espera con reintentos a que Postgres este disponible antes de aceptar requests.
+**Desde el ejercicio 2.8**, las tareas se guardan en Postgres real (`manifests/postgres.yaml`, `StatefulSet` de 1 replica con `Service` headless `postgres-svc`, mismo patron que `ping_pong` en 2.7), no en memoria — sobreviven a que el Pod se reinicie. La conexion (host/puerto/usuario/base) se pasa por env vars definidas en el Deployment, y la contraseña viene de un `Secret` (`manifests/secret.yaml`), no queda hardcodeada en ningun lado.
 
 **Desde el ejercicio 2.10**, cada request queda logueado a stdout: un log de acceso general (metodo + path) y, en `POST /todos`, un log explicito de si la tarea se acepto o se rechazo (y por que — el limite de 140 caracteres ya existia desde 2.2). Esos logs de stdout son justo lo que recolecta el stack de Grafana/Loki, ver `../monitoring/README.md`.
+
+**Desde el ejercicio 4.2 (`2.2.0`)** hay dos endpoints de salud y un boton de falla simulada:
+
+- `GET /healthz` → `livenessProbe`. Responde 500 solo si la app se marco como rota; tras 3 fallos (~15 s) el kubelet reinicia el contenedor y, como el estado vive en memoria, vuelve sana. No consulta la base a proposito: si Postgres se cae, reiniciar el backend no arregla nada.
+- `GET /readyz` → `readinessProbe`. 500 si esta rota o si un `SELECT 1` contra Postgres falla: el Pod sale del Service sin reiniciarse.
+- `POST /break` → marca la app como rota (lo llama el boton "Break the app" de `todo_app`). Mientras tanto `/todos` responde 500.
+
+La app ya no espera a Postgres con reintentos ni se cae si no lo encuentra: arranca siempre y la tabla se crea con la primera conexion.
+
+**Persistencia de Postgres corregida en 4.2:** hasta entonces el PVC se montaba en `/var/lib/postgresql`, pero la imagen guarda la base en su propio volumen anonimo `/var/lib/postgresql/data`, asi que los datos se perdian al recrear el Pod. Ahora el PVC se monta en `/var/lib/postgresql/data` con `PGDATA=/var/lib/postgresql/data/pgdata` (los discos de GKE traen `lost+found` y `initdb` exige un directorio vacio). Mismo arreglo en `ping_pong`.
 
 ## Build the image
 
 ```bash
-docker build -t andres09otero/todo-backend:2.1.0 .
+docker build -t andres09otero/todo-backend:2.2.1 .
 ```
 
 ## Run the container
 
 ```bash
-docker run -d -e PORT=3000 -e PGHOST=postgres-svc -e PGPORT=5432 -e PGUSER=postgres -e PGPASSWORD=changeme -e PGDATABASE=postgres -p 3000:3000 andres09otero/todo-backend:2.1.0
+docker run -d -e PORT=3000 -e PGHOST=postgres-svc -e PGPORT=5432 -e PGUSER=postgres -e PGPASSWORD=changeme -e PGDATABASE=postgres -p 3000:3000 andres09otero/todo-backend:2.2.1
 ```
 
 ## Deploy with Kubernetes
@@ -34,7 +44,7 @@ kubectl apply -f manifests/deployment.yaml
 kubectl apply -f manifests/service.yaml
 ```
 
-Espera a que `postgres-ss-0` este `Running` antes de (o mientras) `todo-backend` arranca — la app reintenta sola, pero conviene confirmar con `kubectl get pods -n project`.
+`todo-backend` puede arrancar antes que `postgres-ss-0`: queda `0/1` (no listo) hasta que la base responde y pasa a `1/1` solo.
 
 ## Backup diario a Google Cloud Storage (ejercicio 3.10)
 

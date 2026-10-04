@@ -10,6 +10,11 @@
 //
 // Desde el ejercicio 2.6: la URL de todo-backend ya no esta hardcodeada,
 // viene de TODO_BACKEND_URL (definida en manifests/deployment.yaml).
+//
+// Desde el ejercicio 4.2: boton "Break the app" que le pide a
+// todo-backend que se marque como roto (POST /break), aviso en la pagina
+// cuando el backend no responde bien, y GET /healthz para la
+// readinessProbe de este Deployment (listo solo si todo-backend lo esta).
 
 const express = require('express');
 const { ensureImage, imageExists, getImagePath } = require('./imageCache');
@@ -17,7 +22,8 @@ const { ensureImage, imageExists, getImagePath } = require('./imageCache');
 const app = express();
 app.use(express.urlencoded({ extended: true }));
 
-const TODO_BACKEND_URL = `${process.env.TODO_BACKEND_URL || 'http://todo-backend-svc:2345'}/todos`;
+const BACKEND_BASE_URL = process.env.TODO_BACKEND_URL || 'http://todo-backend-svc:2345';
+const TODO_BACKEND_URL = `${BACKEND_BASE_URL}/todos`;
 
 function escapeHtml(str) {
   return str
@@ -28,15 +34,39 @@ function escapeHtml(str) {
     .replace(/'/g, '&#39;');
 }
 
+// Antes de 4.2 cualquier fallo se tragaba como lista vacia; ahora la
+// pagina tiene que mostrar que la app esta rota, asi que se distingue.
 async function fetchTodos() {
   try {
     const response = await fetch(TODO_BACKEND_URL);
-    return await response.json();
+    if (!response.ok) {
+      return { todos: [], failed: true };
+    }
+    return { todos: await response.json(), failed: false };
   } catch (err) {
     console.error('Error consultando todo-backend-svc:', err);
-    return [];
+    return { todos: [], failed: true };
   }
 }
+
+// El timeout queda por debajo del timeoutSeconds de la readinessProbe.
+async function isBackendReady() {
+  try {
+    const response = await fetch(`${BACKEND_BASE_URL}/readyz`, { signal: AbortSignal.timeout(2000) });
+    return response.ok;
+  } catch (err) {
+    console.error(`todo-backend-svc not reachable: ${err.message}`);
+    return false;
+  }
+}
+
+app.get('/healthz', async (req, res) => {
+  if (!(await isBackendReady())) {
+    return res.status(500).json({ status: 'backend not ready' });
+  }
+
+  return res.status(200).json({ status: 'ok' });
+});
 
 app.get('/', async (req, res) => {
   try {
@@ -49,7 +79,10 @@ app.get('/', async (req, res) => {
     ? '<img src="/image" alt="Imagen aleatoria" />'
     : '<p>No se pudo cargar la imagen todavia.</p>';
 
-  const todos = await fetchTodos();
+  const { todos, failed } = await fetchTodos();
+  const brokenBanner = failed
+    ? '<p class="broken">The app is not working: the backend is not answering. If it was broken with the button, Kubernetes restarts it in a few seconds, reload the page.</p>'
+    : '';
   const todosList = todos.map((todo) => `<li>${escapeHtml(todo)}</li>`).join('\n');
 
   res.send(`
@@ -65,10 +98,14 @@ app.get('/', async (req, res) => {
           button { padding: 0.5rem 1rem; border: none; border-radius: 4px; background: #2e7d32; color: white; cursor: pointer; }
           ul { list-style: none; padding: 0; text-align: left; }
           li { background: #f5f5f5; border-left: 4px solid #2e7d32; padding: 0.5rem 1rem; margin: 0.5rem 0; }
+          .broken { background: #ffebee; border-left: 4px solid #c62828; padding: 0.5rem 1rem; text-align: left; }
+          .break-form { margin-top: 2rem; }
+          .break-form button { background: #c62828; }
         </style>
       </head>
       <body>
         <h1>To do App</h1>
+        ${brokenBanner}
         ${imageTag}
 
         <form action="/todos" method="post">
@@ -80,6 +117,10 @@ app.get('/', async (req, res) => {
         <ul>
           ${todosList}
         </ul>
+
+        <form class="break-form" action="/break" method="post">
+          <button type="submit">Break the app</button>
+        </form>
       </body>
     </html>
   `);
@@ -94,6 +135,16 @@ app.post('/todos', async (req, res) => {
     });
   } catch (err) {
     console.error('Error creando la tarea en todo-backend-svc:', err);
+  }
+
+  res.redirect('/');
+});
+
+app.post('/break', async (req, res) => {
+  try {
+    await fetch(`${BACKEND_BASE_URL}/break`, { method: 'POST' });
+  } catch (err) {
+    console.error('Error rompiendo todo-backend-svc:', err);
   }
 
   res.redirect('/');

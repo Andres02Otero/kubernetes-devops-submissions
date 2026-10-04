@@ -21,7 +21,25 @@ spec:
     spec:
       containers:
         - name: todo-backend
-          image: andres09otero/todo-backend:2.1.0
+          image: andres09otero/todo-backend:2.2.1
+          # Ejercicio 4.2. Readiness: rota o sin Postgres = sin trafico.
+          readinessProbe:
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            timeoutSeconds: 3
+            httpGet:
+              path: /readyz
+              port: 3000
+          # Liveness: solo mira si la app esta rota; tras 3 fallos seguidos
+          # (~15 s) el kubelet reinicia el contenedor y vuelve sana.
+          livenessProbe:
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 3
+            httpGet:
+              path: /healthz
+              port: 3000
           resources:
             requests:
               cpu: "25m"

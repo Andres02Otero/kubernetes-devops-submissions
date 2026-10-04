@@ -24,8 +24,8 @@ pool.on('error', (err) => {
 // recibir trafico. La tabla se crea la primera vez que hay conexion.
 let schemaReady = false;
 
-async function ensureSchema() {
-    if (schemaReady) {
+async function ensureSchema(force = false) {
+    if (schemaReady && !force) {
         return;
     }
 
@@ -39,8 +39,10 @@ async function ensureSchema() {
         INSERT INTO pingpong_counter (id, count) VALUES (1, 0)
         ON CONFLICT (id) DO NOTHING
     `);
+    if (!schemaReady) {
+        console.log('Connected to postgres and ready');
+    }
     schemaReady = true;
-    console.log('Connected to postgres and ready');
 }
 
 // Incrementa el contador de forma atomica (una sola sentencia SQL) y
@@ -61,12 +63,14 @@ async function getCurrentCount() {
     return result.rows[0].count;
 }
 
-// "Listo" = hay conexion real con la base. El SELECT 1 se hace siempre,
-// aunque el esquema ya exista, para detectar si Postgres se cae despues.
+// "Listo" = hay conexion real con la base y la tabla existe. Se fuerza
+// el CREATE ... IF NOT EXISTS en cada chequeo (es barato) en vez de
+// confiar en schemaReady: si Postgres vuelve con la base vacia (disco
+// nuevo, restore), la tabla se recrea sola en el siguiente chequeo
+// (bug visto al corregir la persistencia en el ejercicio 4.2).
 async function isDatabaseReachable() {
     try {
-        await ensureSchema();
-        await pool.query('SELECT 1');
+        await ensureSchema(true);
         return true;
     } catch (err) {
         console.error(`Postgres not reachable: ${err.message}`);

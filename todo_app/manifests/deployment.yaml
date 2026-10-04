@@ -32,7 +32,16 @@ spec:
 
       containers:
         - name: todo-app
-          image: andres09otero/todo-app:1.5.0
+          image: andres09otero/todo-app:1.6.0
+          # Ejercicio 4.2: listo solo si todo-backend esta listo. Sin
+          # liveness: reiniciar el frontend no arregla un backend roto.
+          readinessProbe:
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            timeoutSeconds: 3
+            httpGet:
+              path: /healthz
+              port: 3000
           # Valores medidos con kubectl top en reposo y con margen para picos (ejercicio 3.11); los nodos son e2-small, asi que los requests van bajos.
           resources:
             requests:

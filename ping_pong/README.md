@@ -10,16 +10,18 @@ Historial del contador: vivio en memoria (1.9) → se persistio en un `Persisten
 
 **Desde el ejercicio 2.3**, esta app vive en el namespace `exercises` (no `default`) — ver `../namespaces/README.md`.
 
+**Persistencia corregida en 4.2:** el PVC de Postgres ahora se monta en `/var/lib/postgresql/data` con `PGDATA=/var/lib/postgresql/data/pgdata`; antes se montaba en `/var/lib/postgresql` y la base quedaba en el volumen anonimo de la imagen, perdiendose al recrear el Pod (detalle en `../todo_backend/README.md`).
+
 ## Build the image
 
 ```bash
-docker build -t andres09otero/ping-pong:3.1.0 .
+docker build -t andres09otero/ping-pong:3.1.1 .
 ```
 
 ## Run the container
 
 ```bash
-docker run -d -e PORT=3000 -e PGHOST=postgres-svc -e PGPORT=5432 -e PGUSER=postgres -e PGPASSWORD=changeme -e PGDATABASE=postgres -p 3000:3000 andres09otero/ping-pong:3.1.0
+docker run -d -e PORT=3000 -e PGHOST=postgres-svc -e PGPORT=5432 -e PGUSER=postgres -e PGPASSWORD=changeme -e PGDATABASE=postgres -p 3000:3000 andres09otero/ping-pong:3.1.1
 ```
 
 ## View the logs

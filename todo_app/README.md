@@ -12,16 +12,18 @@ Desde el ejercicio 1.13, `GET /` tambien incluye un input (max 140 caracteres) +
 
 **Desde el ejercicio 2.6**, no queda ninguna URL/path hardcodeado en el codigo fuente — `TODO_BACKEND_URL`, `IMAGE_CACHE_DIR` y `PICSUM_URL` se definen en `manifests/deployment.yaml` (con fallback en el codigo solo para poder correrlo suelto en local sin Kubernetes). `IMAGE_CACHE_DIR` debe coincidir con el `mountPath` del volumen en ese mismo archivo. `MAXLENGTH=140` y los 10 minutos de cache del `imageCache.js` **no** se movieron a env vars — son reglas de negocio del ejercicio (1.13, 1.12), no configuracion de infraestructura que deba variar entre entornos.
 
+**Desde el ejercicio 4.2 (`1.6.0`)** la pagina tiene un boton rojo **"Break the app"** que llama `POST /break` de `todo-backend` (ver `../todo_backend/README.md`); mientras el backend esta roto o no responde, la pagina muestra un aviso en rojo. `GET /healthz` responde 200 solo si `todo-backend` esta listo (`/readyz`), y es la `readinessProbe` de este Deployment. No tiene `livenessProbe`: reiniciar el frontend no arregla un backend roto.
+
 ## Build the image
 
 ```bash
-docker build -t andres09otero/todo-app:1.5.0 .
+docker build -t andres09otero/todo-app:1.6.0 .
 ```
 
 ## Run the container
 
 ```bash
-docker run -d -e PORT=3000 -e TODO_BACKEND_URL=http://todo-backend-svc:2345 -p 3000:3000 -v $(pwd)/image-cache-local:/usr/src/app/image-cache andres09otero/todo-app:1.5.0
+docker run -d -e PORT=3000 -e TODO_BACKEND_URL=http://todo-backend-svc:2345 -p 3000:3000 -v $(pwd)/image-cache-local:/usr/src/app/image-cache andres09otero/todo-app:1.6.0
 ```
 
 ## View the logs

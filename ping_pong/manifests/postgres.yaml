@@ -53,9 +53,18 @@ spec:
                 secretKeyRef:
                   name: postgres-credentials
                   key: POSTGRES_PASSWORD
+            # Corregido en el ejercicio 4.2: antes el volumen se montaba en
+            # /var/lib/postgresql, pero la imagen declara su propio volumen
+            # anonimo en /var/lib/postgresql/data (donde vive la base), asi
+            # que los datos nunca llegaban al PVC y se perdian al recrear el
+            # Pod. Ahora el PVC se monta justo ahi, y PGDATA apunta a una
+            # subcarpeta porque initdb exige un directorio vacio (los discos
+            # de GKE traen lost+found en la raiz).
+            - name: PGDATA
+              value: /var/lib/postgresql/data/pgdata
           volumeMounts:
             - name: data
-              mountPath: /var/lib/postgresql
+              mountPath: /var/lib/postgresql/data
 
   volumeClaimTemplates:
     - metadata:
