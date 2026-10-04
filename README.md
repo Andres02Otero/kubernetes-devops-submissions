@@ -72,6 +72,7 @@ k3d cluster create --port 8082:30080@agent:0 -p 8081:80@loadbalancer --agents 2
 ### Update Strategies and Prometheus
 - [4.1](https://github.com/Andres02Otero/kubernetes-devops-submissions/tree/4.1)
 - [4.2](https://github.com/Andres02Otero/kubernetes-devops-submissions/tree/4.2)
+- [4.3](https://github.com/Andres02Otero/kubernetes-devops-submissions/tree/4.3)
 
 ---
 
@@ -113,3 +114,15 @@ On GKE we can run Postgres in two ways: keep our own instance as a StatefulSet o
 For this project (a solo learning exercise with tiny data, minimal traffic, a limited credit budget and a workflow that already spins up a full environment per branch) DIY is the better fit: each branch gets its own Postgres almost for free, we stay portable, and we practice the operational skills the course teaches. Cloud SQL becomes the better choice once the data matters: a production service with real users, a team with no time to operate a database, or a need for HA and point-in-time recovery that we do not want to build. The trade-off is money and lock-in on one side, time and risk on the other.
 
 Cost figures here are approximate and change over time; check the [Google Cloud pricing calculator](https://cloud.google.com/products/calculator) before deciding.
+
+## Exercise 4.3 - Prometheus query
+
+Prometheus runs in the `monitoring` namespace (installed with Helm in exercise 2.10, release `prom`), so the query filters on `monitoring` instead of `prometheus`:
+
+```promql
+count(kube_pod_info{namespace="monitoring", created_by_kind="StatefulSet"})
+```
+
+Result: `3` (`loki-0`, `loki-chunks-cache-0` and `loki-results-cache-0`).
+
+![Prometheus query result](monitoring/prometheus-statefulset-pods.png)
