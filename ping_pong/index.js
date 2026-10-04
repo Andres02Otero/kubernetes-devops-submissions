@@ -5,7 +5,7 @@ const { Pool } = require('pg');
 // guarda en Postgres (StatefulSet, ver manifests/postgres.yaml) para
 // sobrevivir a que el Pod se reinicie. pg.Pool() lee la conexion de las
 // env vars estandar PGHOST/PGPORT/PGUSER/PGPASSWORD/PGDATABASE (definidas
-// en manifests/deployment.yaml), no hace falta armar el connection string.
+// en manifests/rollout.yaml), no hace falta armar el connection string.
 // El timeout de conexion va por debajo del timeoutSeconds de la
 // readinessProbe: si Postgres no contesta, /healthz debe responder 500
 // antes de que el kubelet de la prueba por perdida.
@@ -84,7 +84,7 @@ function sendText(res, status, body) {
 }
 
 const server = http.createServer(async (req, res) => {
-    // Endpoint de la readinessProbe (ver manifests/deployment.yaml).
+    // Endpoint de la readinessProbe (ver manifests/rollout.yaml).
     if (req.method === 'GET' && req.url === '/healthz') {
         const reachable = await isDatabaseReachable();
         sendText(res, reachable ? 200 : 500, reachable ? 'ok' : 'database not reachable');

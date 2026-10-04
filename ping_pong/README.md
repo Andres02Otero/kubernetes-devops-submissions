@@ -6,11 +6,18 @@ Responde `pong <N>` a `GET /` (hasta 3.3 era `/pingpong`; desde 3.4 el `HTTPRout
 
 Historial del contador: vivio en memoria (1.9) → se persistio en un `PersistentVolume` compartido con `log_output` (1.11) → volvio a memoria (2.1) → **desde 2.7, vive en una base de datos Postgres real** (`manifests/postgres.yaml`, un `StatefulSet` de 1 replica con `Service` headless `postgres-svc`), usando el paquete `pg`. El incremento es atomico (una sola sentencia `UPDATE ... RETURNING`).
 
-**Desde el ejercicio 4.1 (`3.1.0`)** la app ya no espera a Postgres con reintentos ni se cae si no lo encuentra: arranca siempre y expone `GET /healthz` (200 si un `SELECT 1` contra la base funciona, 500 si no). El `deployment.yaml` tiene una `readinessProbe` sobre ese endpoint, asi que sin base el Pod queda `0/1 Running` (fuera de los endpoints de `ping-pong-svc`) y pasa solo a `1/1` cuando Postgres aparece. Mientras tanto `/` y `/pings` responden 503.
+**Desde el ejercicio 4.1 (`3.1.0`)** la app ya no espera a Postgres con reintentos ni se cae si no lo encuentra: arranca siempre y expone `GET /healthz` (200 si un `SELECT 1` contra la base funciona, 500 si no). El manifiesto de la app tiene una `readinessProbe` sobre ese endpoint, asi que sin base el Pod queda `0/1 Running` (fuera de los endpoints de `ping-pong-svc`) y pasa solo a `1/1` cuando Postgres aparece. Mientras tanto `/` y `/pings` responden 503.
 
 **Desde el ejercicio 2.3**, esta app vive en el namespace `exercises` (no `default`) — ver `../namespaces/README.md`.
 
 **Persistencia corregida en 4.2:** el PVC de Postgres ahora se monta en `/var/lib/postgresql/data` con `PGDATA=/var/lib/postgresql/data/pgdata`; antes se montaba en `/var/lib/postgresql` y la base quedaba en el volumen anonimo de la imagen, perdiendose al recrear el Pod (detalle en `../todo_backend/README.md`).
+
+**Desde el ejercicio 4.4** la app se despliega con un `Rollout` de Argo Rollouts (`manifests/rollout.yaml`) en vez de un `Deployment`. Estrategia canary: sube 1 Pod nuevo junto al estable (`setWeight: 50`) y corre `manifests/analysistemplate.yaml`, que durante 5 minutos (una medicion por minuto) consulta a Prometheus la CPU de todos los contenedores del namespace `exercises`. Si alguna medicion supera 0.05 cores, el analisis falla y Argo revierte el update; si no, el canary reemplaza al estable. Requiere Argo Rollouts instalado en el cluster (con `--server-side`: los CRDs `rollouts` y `analysisruns` superan el limite de 256 KB de la anotacion que usa el `apply` normal):
+
+```bash
+kubectl create namespace argo-rollouts
+kubectl apply --server-side -n argo-rollouts -f https://github.com/argoproj/argo-rollouts/releases/latest/download/install.yaml
+```
 
 ## Build the image
 
@@ -37,7 +44,8 @@ Requires the `exercises` namespace created first — see `../namespaces/README.m
 ```bash
 kubectl apply -f manifests/secret.yaml
 kubectl apply -f manifests/postgres.yaml
-kubectl apply -f manifests/deployment.yaml
+kubectl apply -f manifests/analysistemplate.yaml
+kubectl apply -f manifests/rollout.yaml
 kubectl apply -f manifests/service.yaml
 kubectl apply -f manifests-gke/healthcheck.yaml
 ```
@@ -48,7 +56,7 @@ Este Service es `ClusterIP` (sin acceso directo desde fuera) — el acceso publi
 
 ## Deploy en GKE (ejercicios 3.1 a 3.4)
 
-`manifests-gke/` solo contiene lo que cambia respecto a k3d; `secret.yaml` y `deployment.yaml` se reutilizan de `manifests/`. Diferencias:
+`manifests-gke/` solo contiene lo que cambia respecto a k3d; `secret.yaml`, `rollout.yaml` y `analysistemplate.yaml` se reutilizan de `manifests/`. Diferencias:
 
 - `service.yaml` (ya no existe en `manifests-gke/`): en 3.1 era `LoadBalancer` en el puerto 80 (tag `3.1`), en 3.2 `NodePort` en el 3001 porque el Ingress de GKE lo exige (tag `3.2`). **Desde 3.3 con Gateway API vuelve a ser `ClusterIP`**, o sea el mismo `manifests/service.yaml` de k3d.
 - `postgres.yaml`: sin `storageClassName`, para que GKE aprovisione el disco con su clase por defecto.
@@ -63,7 +71,8 @@ Este Service es `ClusterIP` (sin acceso directo desde fuera) — el acceso publi
 kubectl apply -f ../namespaces/exercises-namespace.yaml
 kubectl apply -f manifests/secret.yaml
 kubectl apply -f manifests-gke/postgres.yaml
-kubectl apply -f manifests/deployment.yaml
+kubectl apply -f manifests/analysistemplate.yaml
+kubectl apply -f manifests/rollout.yaml
 kubectl apply -f manifests/service.yaml
 kubectl apply -f manifests-gke/healthcheck.yaml
 ```

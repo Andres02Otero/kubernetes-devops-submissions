@@ -1,0 +1,34 @@
+apiVersion: argoproj.io/v1alpha1
+
+kind: AnalysisTemplate
+
+metadata:
+  name: namespace-cpu-usage
+  namespace: exercises
+
+spec:
+  metrics:
+    - name: namespace-cpu-usage
+      # Una medicion por minuto durante 5 minutos; basta una por encima del
+      # umbral (failureLimit 0) para fallar el analisis y revertir el update.
+      interval: 1m
+      count: 5
+      failureLimit: 0
+      # Umbral fijo en cores: en reposo todo el namespace (ping-pong,
+      # log-output y Postgres) gasta ~0.002, con el canary arrancando algo
+      # mas. 0.05 (50 milicores) deja margen de sobra para una version sana
+      # y aun asi atrapa una que se ponga a quemar CPU.
+      successCondition: result < 0.05
+      provider:
+        prometheus:
+          # Prometheus del ejercicio 2.10 (Helm, release "prom", namespace monitoring).
+          address: http://prom-prometheus-server.monitoring.svc.cluster.local:80
+          # container!="" deja fuera las series agregadas por Pod que
+          # tambien expone cAdvisor; sin el filtro el consumo se cuenta doble.
+          # scalar() convierte el vector en un numero para successCondition.
+          # Ventana de 5m (no menos): Prometheus mide cada 1m, y con menos
+          # puntos rate() puede salir vacio (NaN), que Argo cuenta como fallo.
+          query: |
+            scalar(
+              sum(rate(container_cpu_usage_seconds_total{namespace="exercises", container!=""}[5m]))
+            )
