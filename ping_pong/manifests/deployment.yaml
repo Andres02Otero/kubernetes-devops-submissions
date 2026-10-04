@@ -21,7 +21,16 @@ spec:
     spec:
       containers:
         - name: ping-pong
-          image: andres09otero/ping-pong:3.0.0
+          image: andres09otero/ping-pong:3.1.0
+          # Listo solo si /healthz logra hablar con Postgres; mientras no,
+          # el Pod sigue Running pero sale de los endpoints de ping-pong-svc.
+          readinessProbe:
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            timeoutSeconds: 3
+            httpGet:
+              path: /healthz
+              port: 3000
           env:
             - name: PORT
               value: "3000"

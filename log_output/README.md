@@ -27,18 +27,20 @@ env variable: MESSAGE=hello world
 Ping / Pongs: 3
 ```
 
+**Since exercise 4.1 (reader `1.3.0`)**, `reader` exposes `GET /healthz` (200 only if `ping-pong-svc` answers `/pings`, 500 otherwise) and has a `readinessProbe` on it. `writer` has no probe, so while ping-pong is unavailable the Pod shows `1/2` and goes to `2/2` by itself once ping-pong is ready.
+
 ## Build the images
 
 ```bash
 docker build -t andres09otero/log-output-writer:1.0.0 writer/
-docker build -t andres09otero/log-output-reader:1.2.0 reader/
+docker build -t andres09otero/log-output-reader:1.3.0 reader/
 ```
 
 ## Push
 
 ```bash
 docker push andres09otero/log-output-writer:1.0.0
-docker push andres09otero/log-output-reader:1.2.0
+docker push andres09otero/log-output-reader:1.3.0
 ```
 
 ## Deploy with Kubernetes

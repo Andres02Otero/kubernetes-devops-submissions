@@ -44,7 +44,28 @@ async function fetchPingPongCount() {
     }
 }
 
+// Desde el ejercicio 4.1: a diferencia de fetchPingPongCount (que cae a 0
+// para no romper la pagina), aqui cualquier fallo cuenta como "no listo".
+// El timeout queda por debajo del timeoutSeconds de la readinessProbe.
+async function canReachPingPong() {
+    try {
+        const response = await fetch(PING_PONG_URL, { signal: AbortSignal.timeout(2000) });
+        return response.ok;
+    } catch (err) {
+        console.error(`ping-pong-svc not reachable: ${err.message}`);
+        return false;
+    }
+}
+
 const server = http.createServer(async (req, res) => {
+    // Endpoint de la readinessProbe del contenedor reader (ver manifests/deployment.yaml).
+    if (req.method === 'GET' && req.url === '/healthz') {
+        const reachable = await canReachPingPong();
+        res.writeHead(reachable ? 200 : 500, { 'Content-Type': 'text/plain' });
+        res.end(reachable ? 'ok' : 'ping-pong not reachable');
+        return;
+    }
+
     const fileContent = readConfigFile();
     const message = process.env.MESSAGE || '';
     const status = readLastLine();

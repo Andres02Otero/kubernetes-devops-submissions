@@ -35,7 +35,16 @@ spec:
               mountPath: /usr/src/app/files
 
         - name: reader
-          image: andres09otero/log-output-reader:1.2.0
+          image: andres09otero/log-output-reader:1.3.0
+          # Solo el reader lleva probe: es el que depende de ping-pong. El
+          # writer queda listo siempre, por eso sin ping-pong el Pod marca 1/2.
+          readinessProbe:
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            timeoutSeconds: 3
+            httpGet:
+              path: /healthz
+              port: 3000
           env:
             - name: PORT
               value: "3000"
