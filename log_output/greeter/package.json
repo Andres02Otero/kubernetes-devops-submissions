@@ -1,0 +1,10 @@
+{
+  "name": "log-output-greeter",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Responde a GET con un saludo de su version; log-output lo muestra (ejercicio 5.3)",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  }
+}

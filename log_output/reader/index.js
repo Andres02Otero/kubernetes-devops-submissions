@@ -9,6 +9,11 @@ const FILE_PATH = path.join('/usr/src/app/files', 'status.log');
 // (comunicacion pod-a-pod via el DNS de Kubernetes: <service>:<port>).
 const PING_PONG_URL = 'http://ping-pong-svc:3001/pings';
 
+// Desde el ejercicio 5.3: el saludo viene del servicio greeter. Se llama a
+// greeter-svc y no a una version concreta: Istio (HTTPRoute + waypoint)
+// decide si responde v1 o v2.
+const GREETER_URL = process.env.GREETER_URL || 'http://greeter-svc';
+
 // Desde el ejercicio 2.5: el ConfigMap log-output-config se monta como
 // archivo (information.txt) y ademas se pasa como env var (MESSAGE).
 const CONFIG_FILE_PATH = path.join('/usr/src/app/config', 'information.txt');
@@ -57,6 +62,21 @@ async function canReachPingPong() {
     }
 }
 
+// Si el greeter falla la pagina sigue funcionando; no afecta la
+// readinessProbe, que solo depende de ping-pong (4.1).
+async function fetchGreeting() {
+    try {
+        const response = await fetch(GREETER_URL, { signal: AbortSignal.timeout(2000) });
+        if (!response.ok) {
+            return `greeter answered ${response.status}`;
+        }
+        return (await response.text()).trim();
+    } catch (err) {
+        console.error('Error consultando greeter-svc:', err.message);
+        return 'greeter not available';
+    }
+}
+
 const server = http.createServer(async (req, res) => {
     // Endpoint de la readinessProbe del contenedor reader (ver manifests/deployment.yaml).
     if (req.method === 'GET' && req.url === '/healthz') {
@@ -70,9 +90,10 @@ const server = http.createServer(async (req, res) => {
     const message = process.env.MESSAGE || '';
     const status = readLastLine();
     const count = await fetchPingPongCount();
+    const greeting = await fetchGreeting();
 
     res.writeHead(200, { 'Content-Type': 'text/plain' });
-    res.end(`file content: ${fileContent}\nenv variable: MESSAGE=${message}\n${status}\nPing / Pongs: ${count}`);
+    res.end(`file content: ${fileContent}\nenv variable: MESSAGE=${message}\n${status}\nPing / Pongs: ${count}\ngreetings: ${greeting}`);
 });
 
 const PORT = process.env.PORT || 3000;

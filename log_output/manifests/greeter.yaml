@@ -1,0 +1,156 @@
+# Ejercicio 5.3: el servicio greeter en dos versiones (misma imagen, cambia
+# la env var VERSION) con un canary 75/25 hecho por Istio.
+apiVersion: apps/v1
+
+kind: Deployment
+
+metadata:
+  name: greeter-v1
+  namespace: exercises
+
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: greeter
+      version: v1
+  template:
+    metadata:
+      labels:
+        app: greeter
+        version: v1
+    spec:
+      containers:
+        - name: greeter
+          image: andres09otero/log-output-greeter:1.0.0
+          env:
+            - name: VERSION
+              value: "1"
+          resources:
+            requests:
+              cpu: "5m"
+              memory: "24Mi"
+            limits:
+              cpu: "100m"
+              memory: "64Mi"
+
+---
+apiVersion: apps/v1
+
+kind: Deployment
+
+metadata:
+  name: greeter-v2
+  namespace: exercises
+
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: greeter
+      version: v2
+  template:
+    metadata:
+      labels:
+        app: greeter
+        version: v2
+    spec:
+      containers:
+        - name: greeter
+          image: andres09otero/log-output-greeter:1.0.0
+          env:
+            - name: VERSION
+              value: "2"
+          resources:
+            requests:
+              cpu: "5m"
+              memory: "24Mi"
+            limits:
+              cpu: "100m"
+              memory: "64Mi"
+
+---
+# El que llama log-output. Selecciona las dos versiones, pero no importa:
+# el HTTPRoute de abajo esta pegado a este Service y el waypoint del
+# namespace reparte su trafico entre greeter-svc-1 y greeter-svc-2.
+apiVersion: v1
+
+kind: Service
+
+metadata:
+  name: greeter-svc
+  namespace: exercises
+
+spec:
+  type: ClusterIP
+  selector:
+    app: greeter
+  ports:
+    - port: 80
+      protocol: TCP
+      targetPort: 3000
+
+---
+apiVersion: v1
+
+kind: Service
+
+metadata:
+  name: greeter-svc-1
+  namespace: exercises
+
+spec:
+  type: ClusterIP
+  selector:
+    app: greeter
+    version: v1
+  ports:
+    - port: 80
+      protocol: TCP
+      targetPort: 3000
+
+---
+apiVersion: v1
+
+kind: Service
+
+metadata:
+  name: greeter-svc-2
+  namespace: exercises
+
+spec:
+  type: ClusterIP
+  selector:
+    app: greeter
+    version: v2
+  ports:
+    - port: 80
+      protocol: TCP
+      targetPort: 3000
+
+---
+# El canary: parentRefs es el Service (no un Gateway), asi la regla aplica
+# al trafico interno del mesh hacia greeter-svc. Necesita el waypoint de
+# ../manifests-istio/waypoint.yaml, que es quien entiende HTTP.
+apiVersion: gateway.networking.k8s.io/v1
+
+kind: HTTPRoute
+
+metadata:
+  name: greeter-route
+  namespace: exercises
+
+spec:
+  parentRefs:
+    - group: ""
+      kind: Service
+      name: greeter-svc
+      port: 80
+  rules:
+    - backendRefs:
+        - name: greeter-svc-1
+          port: 80
+          weight: 75
+        - name: greeter-svc-2
+          port: 80
+          weight: 25

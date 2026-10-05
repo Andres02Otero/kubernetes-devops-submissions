@@ -9,11 +9,18 @@ resources:
 - manifests/configmap.yaml
 - manifests/deployment.yaml
 - manifests/service.yaml
+# Ejercicio 5.3: greeter con canary 75/25, waypoint y gateway de Istio.
+- manifests/greeter.yaml
+- manifests-istio/waypoint.yaml
+- manifests-istio/gateway.yaml
 
 # El workflow .github/workflows/log-output-gitops.yaml reescribe estos tags
 # (kustomize edit set image) con el SHA de cada commit que cambia el codigo
 # y hace commit de este archivo; ese commit es lo que ArgoCD despliega.
 images:
+- name: andres09otero/log-output-greeter
+  newName: andres09otero/log-output-greeter
+  newTag: 1.0.0
 - name: andres09otero/log-output-reader
   newName: andres09otero/log-output-reader
   newTag: ece1fd3240b0912a16b1806627fb8995c7df2bfd

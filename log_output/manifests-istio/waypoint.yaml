@@ -1,0 +1,19 @@
+# Ejercicio 5.3: proxy L7 (waypoint) del namespace exercises, generado con
+# "istioctl waypoint generate -n exercises". En modo ambient el ztunnel solo
+# ve TCP; para repartir trafico HTTP (el canary del greeter) hace falta este
+# waypoint. El namespace lo usa por su etiqueta istio.io/use-waypoint
+# (../../namespaces/exercises-namespace.yaml).
+apiVersion: gateway.networking.k8s.io/v1
+
+kind: Gateway
+
+metadata:
+  name: waypoint
+  namespace: exercises
+
+spec:
+  gatewayClassName: istio-waypoint
+  listeners:
+    - name: mesh
+      port: 15008
+      protocol: HBONE

@@ -15,6 +15,8 @@ on:
     paths:
       - 'log_output/reader/**'
       - 'log_output/writer/**'
+      # Desde el ejercicio 5.3
+      - 'log_output/greeter/**'
   # Para lanzarlo a mano desde la pestana Actions sin cambiar codigo.
   workflow_dispatch:
 
@@ -44,12 +46,12 @@ jobs:
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       # El SHA del commit como tag: unico por version y trazable a su codigo.
-      - name: Build and publish reader and writer
+      - name: Build and publish reader, writer and greeter
         run: |-
-          docker build --tag "andres09otero/log-output-reader:$GITHUB_SHA" log_output/reader
-          docker push "andres09otero/log-output-reader:$GITHUB_SHA"
-          docker build --tag "andres09otero/log-output-writer:$GITHUB_SHA" log_output/writer
-          docker push "andres09otero/log-output-writer:$GITHUB_SHA"
+          for part in reader writer greeter; do
+            docker build --tag "andres09otero/log-output-$part:$GITHUB_SHA" "log_output/$part"
+            docker push "andres09otero/log-output-$part:$GITHUB_SHA"
+          done
 
       - name: Set up Kustomize
         uses: imranismail/setup-kustomize@v3
@@ -59,6 +61,7 @@ jobs:
         run: |-
           kustomize edit set image andres09otero/log-output-reader=andres09otero/log-output-reader:$GITHUB_SHA
           kustomize edit set image andres09otero/log-output-writer=andres09otero/log-output-writer:$GITHUB_SHA
+          kustomize edit set image andres09otero/log-output-greeter=andres09otero/log-output-greeter:$GITHUB_SHA
 
       - name: Commit kustomization.yaml to GitHub
         uses: EndBug/add-and-commit@v10

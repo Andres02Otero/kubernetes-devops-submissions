@@ -4,3 +4,8 @@ kind: Namespace
 
 metadata:
   name: exercises
+  # Ejercicio 5.3: todo el namespace en el mesh de Istio (modo ambient) y
+  # su trafico L7 por el waypoint de log_output/manifests-istio/waypoint.yaml.
+  labels:
+    istio.io/dataplane-mode: ambient
+    istio.io/use-waypoint: waypoint

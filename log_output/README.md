@@ -95,3 +95,16 @@ Desde 4.7 Log output ya no se despliega con `kubectl apply` a mano: **ArgoCD**, 
 - `kustomization.yaml`: ConfigMap, Deployment y Service (sin el Ingress de k3d, que choca en `/` con el de `todo_app`), y los tags de imagen.
 - `argocd-application.yaml`: el `Application` de ArgoCD (carpeta `log_output`, rama `main`, sync automatico con `prune` y `selfHeal`). Se aplica una vez: `kubectl apply -n argocd -f argocd-application.yaml`.
 - `../.github/workflows/log-output-gitops.yaml`: cuando cambia el codigo de `reader/` o `writer/` (o al lanzarlo a mano), construye las dos imagenes con el SHA del commit como tag, las sube a Docker Hub y hace commit del `kustomization.yaml` con el tag nuevo. No toca el cluster; ArgoCD ve ese commit y despliega. Necesita los secrets `DOCKERHUB_USERNAME` y `DOCKERHUB_TOKEN` en el repo.
+
+## Service mesh con Istio (ejercicio 5.3)
+
+El namespace `exercises` (log-output, ping-pong y su Postgres) esta en el mesh de Istio en modo ambient (etiquetas `istio.io/dataplane-mode: ambient` e `istio.io/use-waypoint: waypoint` en `../namespaces/exercises-namespace.yaml`).
+
+- `greeter/`: servicio nuevo que responde a GET con `Hello from version <VERSION>`. `reader` lo llama en `greeter-svc` y agrega la linea `greetings: ...` a su respuesta.
+- `manifests/greeter.yaml`: dos Deployments (`greeter-v1`, `greeter-v2`, misma imagen y distinta `VERSION`), tres Services (`greeter-svc`, que es el que usa log-output, y `greeter-svc-1` / `greeter-svc-2`, uno por version) y un `HTTPRoute` con `parentRefs` al Service `greeter-svc` que reparte el trafico **75 % a v1 y 25 % a v2**.
+- `manifests-istio/waypoint.yaml`: el waypoint del namespace; en ambient el reparto HTTP lo hace este proxy L7.
+- `manifests-istio/gateway.yaml`: entrada por un gateway de Istio (`log-gateway`), `/` a log-output y `/pingpong` a ping-pong. Se abre con `kubectl port-forward svc/log-gateway-istio -n exercises 8099:80`.
+
+Todo esto lo despliega ArgoCD (4.7); el workflow `log-output-gitops.yaml` construye tambien la imagen del greeter. Grafo de Kiali con el reparto entre las dos versiones:
+
+![Kiali traffic graph](kiali-greeter.png)
