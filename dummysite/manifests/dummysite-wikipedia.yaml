@@ -1,0 +1,12 @@
+# Un sitio mas complejo (el enunciado acepta que los estilos se rompan).
+# Su copia: http://wikipedia-kubernetes.localhost:8081
+apiVersion: stable.dwk/v1
+
+kind: DummySite
+
+metadata:
+  name: wikipedia-kubernetes
+  namespace: default
+
+spec:
+  website_url: https://en.wikipedia.org/wiki/Kubernetes

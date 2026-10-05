@@ -1,0 +1,38 @@
+apiVersion: apps/v1
+
+kind: Deployment
+
+metadata:
+  name: dummysite-controller
+  namespace: default
+
+spec:
+  # Una sola replica: dos controllers procesarian cada DummySite dos veces.
+  replicas: 1
+
+  selector:
+    matchLabels:
+      app: dummysite-controller
+
+  template:
+    metadata:
+      labels:
+        app: dummysite-controller
+
+    spec:
+      serviceAccountName: dummysite-controller-account
+      containers:
+        - name: dummysite-controller
+          image: andres09otero/dummysite-controller:1.0.1
+          resources:
+            requests:
+              cpu: "10m"
+              memory: "48Mi"
+            limits:
+              cpu: "200m"
+              memory: "128Mi"
+          env:
+            # Cada copia queda en http://<nombre>.<sufijo>:8081 (Ingress de
+            # Traefik en k3d; *.localhost apunta a la propia maquina).
+            - name: HOST_SUFFIX
+              value: "localhost"

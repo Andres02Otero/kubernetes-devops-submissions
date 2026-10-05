@@ -85,6 +85,10 @@ k3d cluster create --port 8082:30080@agent:0 -p 8081:80@loadbalancer --agents 2
 - [4.9](https://github.com/Andres02Otero/kubernetes-devops-submissions/tree/4.9)
 - [4.10](https://github.com/Andres02Otero/kubernetes-devops-submissions/tree/4.10) (configuration repository: [kubernetes-devops-project-config](https://github.com/Andres02Otero/kubernetes-devops-project-config))
 
+## Chapter 6 - Under the hood
+### Custom Resource Definitions
+- [5.1](https://github.com/Andres02Otero/kubernetes-devops-submissions/tree/5.1)
+
 ---
 
 ## Exercise 3.9 - DBaaS vs DIY

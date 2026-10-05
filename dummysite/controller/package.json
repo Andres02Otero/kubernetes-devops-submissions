@@ -1,0 +1,14 @@
+{
+  "name": "dummysite-controller",
+  "version": "1.0.1",
+  "private": true,
+  "type": "module",
+  "description": "Controller del CRD DummySite: crea una copia servible de website_url (ejercicio 5.1)",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js"
+  },
+  "dependencies": {
+    "@kubernetes/client-node": "2.0.0"
+  }
+}
