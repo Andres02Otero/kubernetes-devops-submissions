@@ -28,6 +28,8 @@ La app ya no espera a Postgres con reintentos ni se cae si no lo encuentra: arra
 
 **Desde el ejercicio 4.6 (`3.1.0`)**, despues de guardar en Postgres una tarea creada (`POST`) o actualizada (`PUT`), el backend publica `{ "action": "created" | "updated", "todo": {...} }` en NATS, subject `todos.status` (`src/messaging.js`, URL en `NATS_URL`). Lo consume `../todo_broadcaster`. Si NATS no esta disponible, la tarea se guarda igual y el mensaje se pierde.
 
+**Desde el ejercicio 4.9 (`3.2.0`)** el subject de NATS viene de `NATS_SUBJECT` (por defecto `todos.status`; staging usa `staging.todos.status`). Desde 4.8 las imagenes del proyecto las construye GitHub Actions (tag = SHA del commit en staging, nombre del tag en production); los comandos de abajo son para construirla a mano.
+
 ## Build the image
 
 ```bash
@@ -53,6 +55,6 @@ kubectl apply -f manifests/service.yaml
 
 ## Backup diario a Google Cloud Storage (ejercicio 3.10)
 
-`manifests-gke/backup-cronjob.yaml` es un `CronJob` (03:00 UTC) con dos contenedores oficiales: un `initContainer` con `postgres:16-alpine` que corre `pg_dump` (formato custom) contra `postgres-svc` y un contenedor `google/cloud-sdk` que sube el `.dump` a `gs://dwk-gke-510204-todo-backups/<namespace>/`. La llave de la cuenta de servicio viene del Secret `storage-sa-key`, creado a mano con `kubectl` y nunca versionado.
+`manifests/backup-cronjob.yaml` (hasta 4.8 en `manifests-gke/`; desde 4.9 corre en production y no en staging) es un `CronJob` (03:00 UTC) con dos contenedores oficiales: un `initContainer` con `postgres:16-alpine` que corre `pg_dump` (formato custom) contra `postgres-svc` y un contenedor `google/cloud-sdk` que sube el `.dump` a `gs://dwk-gke-510204-todo-backups/<namespace>/`. La llave de la cuenta de servicio viene del Secret `storage-sa-key`, creado a mano con `kubectl` y nunca versionado.
 
 Restaurar un respaldo: `pg_restore --clean --if-exists -d postgres archivo.dump`.

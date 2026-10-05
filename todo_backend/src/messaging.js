@@ -1,9 +1,9 @@
 // messaging.js
 //
 // Desde el ejercicio 4.6: al crear o actualizar una tarea, el backend
-// publica un mensaje en NATS (subject todos.status). No sabe nada de quien
-// lo escucha; el broadcaster (../todo_broadcaster) se suscribe y lo
-// reenvia al servicio externo. NATS_URL viene de manifests/deployment.yaml.
+// publica un mensaje en NATS (subject NATS_SUBJECT, por defecto
+// todos.status). No sabe nada de quien lo escucha; el broadcaster
+// (../todo_broadcaster) se suscribe y lo reenvia al servicio externo. NATS_URL viene de manifests/deployment.yaml.
 //
 // NATS es opcional para el backend: si no esta disponible las tareas se
 // guardan igual y el mensaje simplemente se pierde. El enunciado lo
@@ -12,7 +12,11 @@
 
 const { connect, JSONCodec } = require('nats');
 
-const SUBJECT = 'todos.status';
+// Desde el ejercicio 4.9 el subject es configurable: staging y production
+// comparten el mismo servidor NATS, y con un subject comun los broadcasters
+// de staging (que solo registran en el log) se quedarian con mensajes de
+// production, que nunca llegarian al servicio externo.
+const SUBJECT = process.env.NATS_SUBJECT || 'todos.status';
 const codec = JSONCodec();
 
 let connection = null;

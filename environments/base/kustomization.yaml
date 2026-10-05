@@ -1,0 +1,36 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+# Ejercicio 4.9: base del proyecto, comun a staging y production. Cada
+# entorno es un overlay (environments/staging, environments/production) que
+# solo define lo que cambia. Hasta 4.8 esta lista vivia en el
+# kustomization.yaml de la raiz del repo, que ArgoCD sincronizaba tal cual;
+# se movio aqui porque Kustomize no permite que una base contenga a sus
+# overlays. Los archivos de manifests-gke/ y persistent-volumes/gke/ quedan
+# como historia del capitulo 4 (GKE).
+resources:
+  - ../../namespaces
+
+  # todo_backend + su Postgres + backup diario (3.10; staging lo borra)
+  - ../../todo_backend/manifests
+
+  # todo_app: PV local de k3d + su PVC, e Ingress de Traefik
+  - ../../persistent-volumes
+  - ../../todo_app/manifests
+
+  - ../../todo_random_article/manifests
+
+  # todo_broadcaster (4.6) y el servicio externo simulado al que reenvia
+  - ../../todo_broadcaster/manifests
+
+# Tags por defecto. Cada entorno los reemplaza en su overlay con los
+# workflows main.yaml (staging) y release-production.yaml (production).
+images:
+  - name: andres09otero/todo-app
+    newTag: 1.7.0
+  - name: andres09otero/todo-backend
+    newTag: 3.1.0
+  - name: andres09otero/todo-random-article
+    newTag: 1.0.0
+  - name: andres09otero/todo-broadcaster
+    newTag: 1.0.0

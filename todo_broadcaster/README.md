@@ -14,6 +14,8 @@ Mensajes posibles: `A todo was created: "..."`, `A todo was marked as done: "...
 
 **Servicio externo de prueba:** `manifests/generic-receiver.yaml` despliega un servidor de eco (`mendhak/http-https-echo`) que responde 200 y escribe en su log cada peticion recibida. Para usar un servicio real basta cambiar `BROADCAST_URL` en `manifests/deployment.yaml`.
 
+**Desde el ejercicio 4.9 (`1.1.0`):** sin `BROADCAST_URL` el broadcaster solo escribe cada mensaje en su log (`Message (not forwarded): ...`) y no lo envia; asi corre en el entorno staging. `NATS_SUBJECT` (por defecto `todos.status`) separa los mensajes de cada entorno: staging usa `staging.todos.status`, para que sus broadcasters no se queden con mensajes de production.
+
 ## Requisito: NATS en el cluster
 
 Instalado con Helm, igual que en la pagina del curso (release `my-nats`, namespace `nats`):

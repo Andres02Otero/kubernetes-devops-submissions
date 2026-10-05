@@ -82,6 +82,7 @@ k3d cluster create --port 8082:30080@agent:0 -p 8081:80@loadbalancer --agents 2
 ### GitOps
 - [4.7](https://github.com/Andres02Otero/kubernetes-devops-submissions/tree/4.7)
 - [4.8](https://github.com/Andres02Otero/kubernetes-devops-submissions/tree/4.8)
+- [4.9](https://github.com/Andres02Otero/kubernetes-devops-submissions/tree/4.9)
 
 ---
 

@@ -1,0 +1,30 @@
+# Ejercicio 4.9: Application de ArgoCD del entorno production. Conserva el
+# nombre "project" del ejercicio 4.8 (el que ya maneja el namespace project);
+# solo cambia la carpeta que sigue. Se aplica una vez:
+#   kubectl apply -n argocd -f environments/production/argocd-application.yaml
+apiVersion: argoproj.io/v1alpha1
+
+kind: Application
+
+metadata:
+  name: project
+  namespace: argocd
+
+spec:
+  project: default
+
+  source:
+    repoURL: https://github.com/Andres02Otero/kubernetes-devops-submissions
+    # Sigue main, pero el kustomization de esta carpeta fija la base al
+    # ultimo tag: lo que cambia production es el commit del workflow de tags.
+    path: environments/production
+    targetRevision: main
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: project
+
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true

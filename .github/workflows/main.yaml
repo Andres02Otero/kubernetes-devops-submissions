@@ -1,4 +1,4 @@
-name: Release project
+name: Release project to staging
 
 # Ejercicio 4.8 (GitOps): reemplaza al pipeline "push" de GKE de los
 # ejercicios 3.6 y 3.7, que se autenticaba en Google y hacia kubectl apply
@@ -6,6 +6,9 @@ name: Release project
 # imagenes del proyecto, las sube a Docker Hub y hace commit de los tags
 # nuevos en kustomization.yaml. ArgoCD, dentro del cluster, ve el commit y
 # despliega. Solo main (el enunciado no pide entornos por rama).
+# Desde el ejercicio 4.9 lo que actualiza es el entorno staging
+# (environments/staging); production lo publica release-production.yaml
+# con cada tag.
 on:
   push:
     branches:
@@ -65,7 +68,8 @@ jobs:
       - name: Set up Kustomize
         uses: imranismail/setup-kustomize@v3
 
-      - name: Use the new images
+      - name: Use the new images in staging
+        working-directory: environments/staging
         run: |-
           for app in todo-app todo-backend todo-random-article todo-broadcaster; do
             kustomize edit set image "andres09otero/$app=andres09otero/$app:$GITHUB_SHA"
@@ -74,5 +78,5 @@ jobs:
       - name: Commit kustomization.yaml to GitHub
         uses: EndBug/add-and-commit@v10
         with:
-          add: 'kustomization.yaml'
-          message: Project new version released ${{ github.sha }}
+          add: 'environments/staging/kustomization.yaml'
+          message: Staging new version released ${{ github.sha }}

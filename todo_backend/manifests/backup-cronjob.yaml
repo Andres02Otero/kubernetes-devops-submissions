@@ -1,3 +1,6 @@
+# Ejercicio 3.10, desde 4.9 en manifests/ (antes en manifests-gke/): forma
+# parte de la base del proyecto, corre en production y el overlay de
+# staging lo borra (el enunciado pide que staging no tenga backup).
 apiVersion: batch/v1
 
 kind: CronJob

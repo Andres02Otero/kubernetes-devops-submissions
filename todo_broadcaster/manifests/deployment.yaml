@@ -37,6 +37,10 @@ spec:
             # NATS instalado con Helm (release my-nats, namespace nats).
             - name: NATS_URL
               value: "nats://my-nats.nats.svc.cluster.local:4222"
+            # Ejercicio 4.9: cada entorno usa su propio subject (staging lo
+            # cambia en environments/staging/kustomization.yaml).
+            - name: NATS_SUBJECT
+              value: "todos.status"
             # Opcion "Generic" del enunciado: cualquier URL que acepte un
             # POST JSON. Aqui apunta al receptor de prueba de
             # generic-receiver.yaml; para un servicio real basta cambiarla.

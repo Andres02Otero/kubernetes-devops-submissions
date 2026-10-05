@@ -67,3 +67,7 @@ spec:
             # instalado con Helm, release my-nats, namespace nats).
             - name: NATS_URL
               value: "nats://my-nats.nats.svc.cluster.local:4222"
+            # Ejercicio 4.9: cada entorno usa su propio subject (staging lo
+            # cambia en environments/staging/kustomization.yaml).
+            - name: NATS_SUBJECT
+              value: "todos.status"
