@@ -1,0 +1,32 @@
+# Ejercicio 4.8: Application de ArgoCD para el proyecto (todo app). Se
+# aplica una sola vez:
+#   kubectl apply -n argocd -f argocd-application.yaml
+# Desde ahi ArgoCD deja el cluster igual a lo que diga kustomization.yaml
+# (en la raiz del repo) en la rama main.
+apiVersion: argoproj.io/v1alpha1
+
+kind: Application
+
+metadata:
+  name: project
+  namespace: argocd
+
+spec:
+  project: default
+
+  source:
+    repoURL: https://github.com/Andres02Otero/kubernetes-devops-submissions
+    # "." = el kustomization.yaml de la raiz, que lista solo los archivos
+    # del proyecto; las demas apps del repo (log_output, ping_pong) no
+    # entran aunque esten en el mismo arbol.
+    path: .
+    targetRevision: main
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: project
+
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true

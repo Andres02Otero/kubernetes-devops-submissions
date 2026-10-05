@@ -22,9 +22,10 @@ on:
 permissions:
   contents: write
 
-# Dos ejecuciones a la vez chocarian al hacer commit del mismo archivo.
+# Mismo grupo que main.yaml: los dos hacen commit a main y dos pushes a la
+# vez chocarian.
 concurrency:
-  group: log-output-gitops
+  group: gitops-release
   cancel-in-progress: false
 
 jobs:
