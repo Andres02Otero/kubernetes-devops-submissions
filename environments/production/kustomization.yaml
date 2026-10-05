@@ -8,7 +8,20 @@ kind: Kustomization
 # nombre del tag, actualiza este ref y las imagenes, y hace commit. Hasta
 # el primer tag con entornos (4.9) apunta a 4.8, que es lo que ya corre.
 resources:
-  - https://github.com/Andres02Otero/kubernetes-devops-submissions?ref=4.8
+- https://github.com/Andres02Otero/kubernetes-devops-submissions//environments/base?ref=4.9
 
 # El namespace de siempre del proyecto: production conserva sus datos.
 namespace: project
+images:
+- name: andres09otero/todo-app
+  newName: andres09otero/todo-app
+  newTag: "4.9"
+- name: andres09otero/todo-backend
+  newName: andres09otero/todo-backend
+  newTag: "4.9"
+- name: andres09otero/todo-broadcaster
+  newName: andres09otero/todo-broadcaster
+  newTag: "4.9"
+- name: andres09otero/todo-random-article
+  newName: andres09otero/todo-random-article
+  newTag: "4.9"
