@@ -1,0 +1,111 @@
+# Ejercicio 5.4: un Pod con tres contenedores que comparten la carpeta
+# publica de nginx a traves de un volumen emptyDir (el mismo mecanismo de
+# log_output en 1.10):
+#   - init container: antes de que arranque nada, descarga la pagina de
+#     Kubernetes de Wikipedia, asi nginx tiene contenido desde el inicio.
+#   - sidecar: en bucle, espera entre 5 y 15 minutos al azar y reemplaza la
+#     pagina por una aleatoria (Special:Random).
+#   - nginx: solo sirve lo que haya en la carpeta.
+apiVersion: apps/v1
+
+kind: Deployment
+
+metadata:
+  name: wikipedia
+  namespace: exercises
+
+spec:
+  replicas: 1
+
+  selector:
+    matchLabels:
+      app: wikipedia
+
+  template:
+    metadata:
+      labels:
+        app: wikipedia
+
+    spec:
+      volumes:
+        - name: www
+          emptyDir: {}
+
+      initContainers:
+        - name: fetch-kubernetes-page
+          image: curlimages/curl:8.10.1
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              set -e
+              # Wikipedia rechaza clientes sin User-Agent identificable.
+              curl -sSfL -A "dwk-wikipedia/1.0 (DevOps with Kubernetes course)" \
+                -o /www/index.html https://en.wikipedia.org/wiki/Kubernetes
+              echo "Saved https://en.wikipedia.org/wiki/Kubernetes"
+          volumeMounts:
+            - name: www
+              mountPath: /www
+          resources:
+            requests:
+              cpu: "5m"
+              memory: "16Mi"
+            limits:
+              cpu: "100m"
+              memory: "64Mi"
+
+        # Sidecar nativo de Kubernetes: un init container con
+        # restartPolicy: Always no bloquea el arranque, sigue corriendo junto
+        # a nginx toda la vida del Pod y se reinicia si se cae. Al ir despues
+        # del init de arriba, arranca cuando la pagina inicial ya existe.
+        - name: random-page-sidecar
+          image: curlimages/curl:8.10.1
+          restartPolicy: Always
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              while true; do
+                # 300..900 segundos = entre 5 y 15 minutos.
+                WAIT=$(( RANDOM % 601 + 300 ))
+                echo "Next random page in ${WAIT}s"
+                sleep "$WAIT"
+                # Se descarga a un archivo temporal y se renombra: asi nginx
+                # nunca sirve una pagina a medio escribir, y si la descarga
+                # falla queda la pagina anterior.
+                if curl -sSfL -A "dwk-wikipedia/1.0 (DevOps with Kubernetes course)" \
+                     -o /www/index.html.tmp -w "%{url_effective}\n" \
+                     https://en.wikipedia.org/wiki/Special:Random; then
+                  mv /www/index.html.tmp /www/index.html
+                  echo "Saved a new random page"
+                else
+                  rm -f /www/index.html.tmp
+                  echo "Download failed, keeping the previous page"
+                fi
+              done
+          volumeMounts:
+            - name: www
+              mountPath: /www
+          resources:
+            requests:
+              cpu: "5m"
+              memory: "16Mi"
+            limits:
+              cpu: "100m"
+              memory: "64Mi"
+
+      containers:
+        - name: nginx
+          image: nginx:1.27-alpine
+          ports:
+            - containerPort: 80
+          volumeMounts:
+            # La carpeta publica de la imagen oficial de nginx.
+            - name: www
+              mountPath: /usr/share/nginx/html
+              readOnly: true
+          resources:
+            requests:
+              cpu: "5m"
+              memory: "16Mi"
+            limits:
+              cpu: "100m"
+              memory: "64Mi"

@@ -1,0 +1,22 @@
+# Por host para no chocar con el Ingress de la app de todos, que ocupa /
+# en Traefik: la app queda en http://wiki.localhost:8081
+apiVersion: networking.k8s.io/v1
+
+kind: Ingress
+
+metadata:
+  name: wikipedia-ingress
+  namespace: exercises
+
+spec:
+  rules:
+    - host: wiki.localhost
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: wikipedia-svc
+                port:
+                  number: 80
