@@ -1,0 +1,28 @@
+# Ejercicio 5.6, guia "Traffic splitting": una segunda Revision (TARGET
+# Knative) y el trafico repartido 50/50 entre ella y la primera
+# (hello-00001). Cada cambio en spec.template crea una Revision nueva e
+# inmutable; spec.traffic decide cuanto recibe cada una.
+apiVersion: serving.knative.dev/v1
+
+kind: Service
+
+metadata:
+  name: hello
+  namespace: default
+
+spec:
+  template:
+    spec:
+      containers:
+        - image: ghcr.io/knative/helloworld-go:latest
+          ports:
+            - containerPort: 8080
+          env:
+            - name: TARGET
+              value: "Knative"
+  traffic:
+    - latestRevision: true
+      percent: 50
+    - latestRevision: false
+      percent: 50
+      revisionName: hello-00001

@@ -1,0 +1,21 @@
+# Ejercicio 5.6: primer Knative Service de la guia "Deploying a Knative
+# Service". Knative crea por su cuenta el Deployment, la Revision, el
+# autoescalado (incluido escalar a cero) y la ruta en Kourier.
+apiVersion: serving.knative.dev/v1
+
+kind: Service
+
+metadata:
+  name: hello
+  namespace: default
+
+spec:
+  template:
+    spec:
+      containers:
+        - image: ghcr.io/knative/helloworld-go:latest
+          ports:
+            - containerPort: 8080
+          env:
+            - name: TARGET
+              value: "World"
