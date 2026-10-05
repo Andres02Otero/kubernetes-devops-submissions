@@ -6,15 +6,17 @@ kind: Kustomization
 # el path / igual que todo-app-ingress y Traefik solo atiende a uno; y los
 # archivos de manifests-gke/ son solo para GKE.
 resources:
-  - manifests/configmap.yaml
-  - manifests/deployment.yaml
-  - manifests/service.yaml
+- manifests/configmap.yaml
+- manifests/deployment.yaml
+- manifests/service.yaml
 
 # El workflow .github/workflows/log-output-gitops.yaml reescribe estos tags
 # (kustomize edit set image) con el SHA de cada commit que cambia el codigo
 # y hace commit de este archivo; ese commit es lo que ArgoCD despliega.
 images:
-  - name: andres09otero/log-output-reader
-    newTag: 1.3.0
-  - name: andres09otero/log-output-writer
-    newTag: 1.0.0
+- name: andres09otero/log-output-reader
+  newName: andres09otero/log-output-reader
+  newTag: ece1fd3240b0912a16b1806627fb8995c7df2bfd
+- name: andres09otero/log-output-writer
+  newName: andres09otero/log-output-writer
+  newTag: ece1fd3240b0912a16b1806627fb8995c7df2bfd
