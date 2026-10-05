@@ -5,11 +5,11 @@ kind: Kustomization
 # argocd-application.yaml). Sin ingress.yaml a proposito: en k3d reclama
 # el path / igual que todo-app-ingress y Traefik solo atiende a uno; y los
 # archivos de manifests-gke/ son solo para GKE.
+# Ejercicio 5.3: greeter con canary 75/25, waypoint y gateway de Istio.
 resources:
 - manifests/configmap.yaml
 - manifests/deployment.yaml
 - manifests/service.yaml
-# Ejercicio 5.3: greeter con canary 75/25, waypoint y gateway de Istio.
 - manifests/greeter.yaml
 - manifests-istio/waypoint.yaml
 - manifests-istio/gateway.yaml
@@ -20,10 +20,10 @@ resources:
 images:
 - name: andres09otero/log-output-greeter
   newName: andres09otero/log-output-greeter
-  newTag: 1.0.0
+  newTag: a09517355a8c0d0a2e54a1f665e79a08ca4cbaef
 - name: andres09otero/log-output-reader
   newName: andres09otero/log-output-reader
-  newTag: ece1fd3240b0912a16b1806627fb8995c7df2bfd
+  newTag: a09517355a8c0d0a2e54a1f665e79a08ca4cbaef
 - name: andres09otero/log-output-writer
   newName: andres09otero/log-output-writer
-  newTag: ece1fd3240b0912a16b1806627fb8995c7df2bfd
+  newTag: a09517355a8c0d0a2e54a1f665e79a08ca4cbaef
