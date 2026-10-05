@@ -20,10 +20,10 @@ resources:
 images:
 - name: andres09otero/log-output-greeter
   newName: andres09otero/log-output-greeter
-  newTag: a09517355a8c0d0a2e54a1f665e79a08ca4cbaef
+  newTag: 15f4ade4d57a53fe963ddaf547fcac6890a51d44
 - name: andres09otero/log-output-reader
   newName: andres09otero/log-output-reader
-  newTag: a09517355a8c0d0a2e54a1f665e79a08ca4cbaef
+  newTag: 15f4ade4d57a53fe963ddaf547fcac6890a51d44
 - name: andres09otero/log-output-writer
   newName: andres09otero/log-output-writer
-  newTag: a09517355a8c0d0a2e54a1f665e79a08ca4cbaef
+  newTag: 15f4ade4d57a53fe963ddaf547fcac6890a51d44
