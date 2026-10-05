@@ -1,5 +1,7 @@
 # Todo Random Article
 
+> **Desde el ejercicio 4.10** los manifiestos de Kubernetes del proyecto ya no estan en este repo: viven en el repo de configuracion [kubernetes-devops-project-config](https://github.com/Andres02Otero/kubernetes-devops-project-config), que es el que lee ArgoCD. Este repo conserva solo el codigo y los workflows que construyen las imagenes. Las rutas `manifests/` y los comandos de despliegue de abajo describen como era antes (ver los tags `1.x` a `4.9`).
+
 `CronJob` (ejercicio 2.9) que corre cada hora: pide un articulo aleatorio de Wikipedia via el redirect de [`Special:Random`](https://en.wikipedia.org/wiki/Special:Random) (lee el header `Location`, sin bajar el articulo completo) y crea una tarea `Read <URL>` en `todo_backend`.
 
 No es una app Node como el resto del proyecto — es un script de shell (`script.sh`) sobre una imagen `alpine` minima con `curl` + `jq`, ya que es una tarea de un solo paso (pedir un header, hacer un POST), no un servidor.

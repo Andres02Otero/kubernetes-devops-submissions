@@ -1,5 +1,7 @@
 # Todo App
 
+> **Desde el ejercicio 4.10** los manifiestos de Kubernetes del proyecto ya no estan en este repo: viven en el repo de configuracion [kubernetes-devops-project-config](https://github.com/Andres02Otero/kubernetes-devops-project-config), que es el que lee ArgoCD. Este repo conserva solo el codigo y los workflows que construyen las imagenes. Las rutas `manifests/` y los comandos de despliegue de abajo describen como era antes (ver los tags `1.x` a `4.9`).
+
 Servidor del proyecto. Al arrancar loguea `Server started in port <PORT>`, leyendo el puerto de la variable de entorno `PORT` (por defecto 3000 si no se define). Responde HTML en `GET /`. Todavia no expone el CRUD de tareas, eso llega en un ejercicio posterior.
 
 Desde el ejercicio 1.12, `GET /` tambien muestra una imagen aleatoria de [Picsum](https://picsum.photos/1200), cacheada en un `PersistentVolume` (`../persistent-volumes/todoapp-image-pv.yaml`) montado en `/usr/src/app/image-cache`. La imagen se reutiliza durante 10 minutos; pasado ese tiempo, esa peticion todavia muestra la vieja y el refresh (llamada a Picsum) se dispara en segundo plano para que la siguiente peticion ya tenga una nueva — asi el request del usuario nunca espera a la API externa salvo la primera vez que no hay ninguna imagen cacheada todavia. `GET /image` sirve el binario de la imagen cacheada.

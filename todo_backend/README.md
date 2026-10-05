@@ -1,5 +1,7 @@
 # Todo Backend
 
+> **Desde el ejercicio 4.10** los manifiestos de Kubernetes del proyecto ya no estan en este repo: viven en el repo de configuracion [kubernetes-devops-project-config](https://github.com/Andres02Otero/kubernetes-devops-project-config), que es el que lee ArgoCD. Este repo conserva solo el codigo y los workflows que construyen las imagenes. Las rutas `manifests/` y los comandos de despliegue de abajo describen como era antes (ver los tags `1.x` a `4.9`).
+
 Guarda las tareas del proyecto (ejercicio 2.2).
 
 - `GET /todos`: devuelve la lista de tareas (JSON, array de strings; **desde 4.5**, array de objetos `{ "id", "content", "done" }`).

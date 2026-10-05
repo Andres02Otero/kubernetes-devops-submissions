@@ -1,5 +1,7 @@
 # Todo Broadcaster
 
+> **Desde el ejercicio 4.10** los manifiestos de Kubernetes del proyecto ya no estan en este repo: viven en el repo de configuracion [kubernetes-devops-project-config](https://github.com/Andres02Otero/kubernetes-devops-project-config), que es el que lee ArgoCD. Este repo conserva solo el codigo y los workflows que construyen las imagenes. Las rutas `manifests/` y los comandos de despliegue de abajo describen como era antes (ver los tags `1.x` a `4.9`).
+
 Servicio del ejercicio 4.6. `todo_backend` publica un mensaje en NATS (subject `todos.status`) cada vez que se crea o se actualiza una tarea; el broadcaster se suscribe a ese subject y reenvia cada mensaje a un servicio externo.
 
 Se usa la opcion **"Generic"** del enunciado: un `POST` a la URL de `BROADCAST_URL` con el body

@@ -1,25 +1,26 @@
 name: Release project to production
 
-# Ejercicio 4.9: cada tag publica el proyecto en production. Construye las
-# imagenes con el nombre del tag y hace commit en main de
-# environments/production/kustomization.yaml apuntando a ese tag: la base
-# fijada a ese commit (?ref=<tag>) y las imagenes <app>:<tag>. ArgoCD ve el
-# commit y despliega; un commit a main sin tag nunca llega a production.
+# Ejercicios 4.9 y 4.10: cada tag publica el proyecto en production.
+# Construye las imagenes con el nombre del tag y hace commit en el REPO DE
+# CONFIGURACION (desde 4.10) de overlays/production/kustomization.yaml: las
+# imagenes <app>:<tag> y la base fijada al commit actual de ese repo
+# (//base?ref=<sha>), para que cambios posteriores de la base solo lleguen a
+# staging hasta el siguiente tag. ArgoCD ve el commit y despliega.
 on:
   push:
     tags:
       - '*'
 
 permissions:
-  contents: write
+  contents: read
 
-# Mismo grupo que los otros workflows que hacen commit a main.
 concurrency:
   group: gitops-release
   cancel-in-progress: false
 
 env:
   TAG: ${{ github.ref_name }}
+  CONFIG_REPO: Andres02Otero/kubernetes-devops-project-config
 
 jobs:
   build-publish-release:
@@ -31,12 +32,12 @@ jobs:
       - name: Checkout the tag
         uses: actions/checkout@v6
 
-      # main aparte: el commit de la nueva version va en main, no en el tag.
-      - name: Checkout main
+      - name: Checkout configuration repository
         uses: actions/checkout@v6
         with:
-          ref: main
-          path: release
+          repository: ${{ env.CONFIG_REPO }}
+          token: ${{ secrets.CONFIG_REPO_TOKEN }}
+          path: config
 
       - name: Login to Docker Hub
         uses: docker/login-action@v4
@@ -55,19 +56,21 @@ jobs:
       - name: Set up Kustomize
         uses: imranismail/setup-kustomize@v3
 
-      # Reemplaza la base remota por la de este tag y fija las imagenes.
+      # La primera linea de resources es la base: local (../../base) hasta el
+      # primer release, despues la base remota fijada a un commit.
       - name: Point production to the tag
-        working-directory: release/environments/production
+        working-directory: config/overlays/production
         run: |-
-          sed -i "s#^  - https://github.com/.*#  - https://github.com/${{ github.repository }}//environments/base?ref=$TAG#" kustomization.yaml
+          BASE_REF="$(git -C ../.. rev-parse HEAD)"
+          sed -i "/^resources:/{n;s#^- .*#- https://github.com/$CONFIG_REPO//base?ref=$BASE_REF#}" kustomization.yaml
           for app in todo-app todo-backend todo-random-article todo-broadcaster; do
             kustomize edit set image "andres09otero/$app=andres09otero/$app:$TAG"
           done
           cat kustomization.yaml
 
-      - name: Commit environments/production/kustomization.yaml to GitHub
+      - name: Commit to the configuration repository
         uses: EndBug/add-and-commit@v10
         with:
-          cwd: release
-          add: 'environments/production/kustomization.yaml'
-          message: Production release ${{ github.ref_name }}
+          cwd: config
+          add: 'overlays/production/kustomization.yaml'
+          message: Production release ${{ github.ref_name }} (${{ github.repository }}@${{ github.sha }})
