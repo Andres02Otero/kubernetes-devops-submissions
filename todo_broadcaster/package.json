@@ -1,0 +1,13 @@
+{
+  "name": "todo_broadcaster",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Escucha en NATS los cambios de tareas de todo_backend y los reenvia a un servicio externo Generic (ejercicio 4.6)",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js"
+  },
+  "dependencies": {
+    "nats": "^2.29.3"
+  }
+}

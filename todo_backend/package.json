@@ -1,14 +1,15 @@
 {
   "name": "todo_backend",
-  "version": "3.0.0",
+  "version": "3.1.0",
   "private": true,
-  "description": "GET/POST /todos persistido en Postgres, consumido por todo_app (ejercicios 2.2, 2.8), con request logging (2.10), probes y boton de falla simulada (4.2), campo done con PUT /todos/:id (4.5)",
+  "description": "GET/POST /todos persistido en Postgres, consumido por todo_app (ejercicios 2.2, 2.8), con request logging (2.10), probes y boton de falla simulada (4.2), campo done con PUT /todos/:id (4.5), publica en NATS (4.6)",
   "main": "src/index.js",
   "scripts": {
     "start": "node src/index.js"
   },
   "dependencies": {
     "express": "^4.19.2",
+    "nats": "^2.29.3",
     "pg": "^8.13.0"
   }
 }

@@ -26,16 +26,18 @@ La app ya no espera a Postgres con reintentos ni se cae si no lo encuentra: arra
 
 **Desde el ejercicio 4.5 (`3.0.0`, cambio incompatible por el nuevo formato de `GET /todos`)** cada tarea tiene una columna `done` (`BOOLEAN`, por defecto `false`). Las bases creadas antes se migran solas con `ALTER TABLE ... ADD COLUMN IF NOT EXISTS`, y sus tareas quedan pendientes.
 
+**Desde el ejercicio 4.6 (`3.1.0`)**, despues de guardar en Postgres una tarea creada (`POST`) o actualizada (`PUT`), el backend publica `{ "action": "created" | "updated", "todo": {...} }` en NATS, subject `todos.status` (`src/messaging.js`, URL en `NATS_URL`). Lo consume `../todo_broadcaster`. Si NATS no esta disponible, la tarea se guarda igual y el mensaje se pierde.
+
 ## Build the image
 
 ```bash
-docker build -t andres09otero/todo-backend:3.0.0 .
+docker build -t andres09otero/todo-backend:3.1.0 .
 ```
 
 ## Run the container
 
 ```bash
-docker run -d -e PORT=3000 -e PGHOST=postgres-svc -e PGPORT=5432 -e PGUSER=postgres -e PGPASSWORD=changeme -e PGDATABASE=postgres -p 3000:3000 andres09otero/todo-backend:3.0.0
+docker run -d -e PORT=3000 -e PGHOST=postgres-svc -e PGPORT=5432 -e PGUSER=postgres -e PGPASSWORD=changeme -e PGDATABASE=postgres -p 3000:3000 andres09otero/todo-backend:3.1.0
 ```
 
 ## Deploy with Kubernetes

@@ -25,9 +25,13 @@
 // Desde el ejercicio 4.5 (3.0.0, cambio incompatible): cada tarea tiene un
 // campo done. GET /todos ya no devuelve un array de strings sino de
 // objetos { id, content, done }, y PUT /todos/:id cambia el done.
+//
+// Desde el ejercicio 4.6: crear o actualizar una tarea publica un mensaje
+// en NATS (ver messaging.js), solo despues de guardarla en Postgres.
 
 const express = require('express');
 const { pool, ensureSchema, isDatabaseReachable } = require('./db');
+const { publishTodoStatus } = require('./messaging');
 
 const app = express();
 app.use(express.json());
@@ -107,6 +111,7 @@ app.post('/todos', async (req, res) => {
       [content],
     );
     console.log(`Accepted todo: "${content}"`);
+    publishTodoStatus('created', result.rows[0]);
     res.status(201).json(result.rows[0]);
   } catch (err) {
     console.error(`POST /todos failed: ${err.message}`);
@@ -140,6 +145,7 @@ app.put('/todos/:id', async (req, res) => {
     }
 
     console.log(`Todo ${id} marked as ${done ? 'done' : 'not done'}`);
+    publishTodoStatus('updated', result.rows[0]);
     res.json(result.rows[0]);
   } catch (err) {
     console.error(`PUT /todos/${id} failed: ${err.message}`);

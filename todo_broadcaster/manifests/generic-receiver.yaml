@@ -1,0 +1,58 @@
+# Simula el "servicio externo" de la opcion Generic sin depender de
+# Discord/Telegram/Slack: un servidor de eco que responde 200 a cualquier
+# peticion y escribe en su log cada request recibido (con el body JSON).
+# Con kubectl logs se comprueba que cada mensaje llega exactamente una vez.
+apiVersion: apps/v1
+
+kind: Deployment
+
+metadata:
+  name: generic-receiver
+  namespace: project
+
+spec:
+  replicas: 1
+
+  selector:
+    matchLabels:
+      app: generic-receiver
+
+  template:
+    metadata:
+      labels:
+        app: generic-receiver
+
+    spec:
+      containers:
+        - name: generic-receiver
+          image: mendhak/http-https-echo:37
+          resources:
+            requests:
+              cpu: "10m"
+              memory: "32Mi"
+            limits:
+              cpu: "100m"
+              memory: "96Mi"
+          # La imagen escucha en el 8080 por defecto.
+          ports:
+            - containerPort: 8080
+
+---
+apiVersion: v1
+
+kind: Service
+
+metadata:
+  name: generic-receiver-svc
+  namespace: project
+
+spec:
+  type: ClusterIP
+
+  selector:
+    app: generic-receiver
+
+  ports:
+    - port: 80
+      protocol: TCP
+      targetPort: 8080

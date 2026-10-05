@@ -21,7 +21,7 @@ spec:
     spec:
       containers:
         - name: todo-backend
-          image: andres09otero/todo-backend:3.0.0
+          image: andres09otero/todo-backend:3.1.0
           # Ejercicio 4.2. Readiness: rota o sin Postgres = sin trafico.
           readinessProbe:
             initialDelaySeconds: 5
@@ -63,3 +63,7 @@ spec:
                 secretKeyRef:
                   name: postgres-credentials
                   key: POSTGRES_PASSWORD
+            # Ejercicio 4.6: donde publicar los cambios de tareas (NATS
+            # instalado con Helm, release my-nats, namespace nats).
+            - name: NATS_URL
+              value: "nats://my-nats.nats.svc.cluster.local:4222"

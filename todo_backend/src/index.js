@@ -5,9 +5,13 @@
 // encarga la readinessProbe (ver app.js y manifests/deployment.yaml).
 
 const app = require('./app');
+const { connectToNats } = require('./messaging');
 
 const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, () => {
   console.log(`Server started in port ${PORT}`);
 });
+
+// Sin await a proposito: el servidor no espera a NATS (ver messaging.js).
+connectToNats();
