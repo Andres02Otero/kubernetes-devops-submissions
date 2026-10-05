@@ -1,0 +1,21 @@
+# - ping-pong se llama por su nombre DNS completo, como indica el ejercicio.
+# - GREETER_URL vacia: este cluster no tiene el greeter de 5.3.
+# - Sin readinessProbe en el reader: la de 4.1 consultaba a ping-pong cada
+#   5 segundos, lo que mantendria siempre un pod de ping-pong despierto y
+#   anularia el escalado a cero, que es la gracia de hacerlo serverless.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: log-output
+  namespace: exercises
+spec:
+  template:
+    spec:
+      containers:
+        - name: reader
+          readinessProbe: null
+          env:
+            - name: PING_PONG_URL
+              value: "http://ping-pong.exercises.svc.cluster.local/pings"
+            - name: GREETER_URL
+              value: ""

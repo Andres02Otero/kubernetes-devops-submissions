@@ -1,0 +1,16 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+# Ejercicio 5.7: Log output en el cluster de Knative, donde ping-pong es un
+# servicio serverless (../../ping_pong/manifests-knative). Solo cambia lo
+# necesario respecto a la base:
+resources:
+  - ../manifests
+
+patches:
+  - path: reader-knative.yaml
+  - path: service-nodeport.yaml
+
+images:
+  - name: andres09otero/log-output-reader
+    newTag: 1.5.0

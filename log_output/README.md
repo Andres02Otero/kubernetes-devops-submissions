@@ -108,3 +108,7 @@ El namespace `exercises` (log-output, ping-pong y su Postgres) esta en el mesh d
 Todo esto lo despliega ArgoCD (4.7); el workflow `log-output-gitops.yaml` construye tambien la imagen del greeter. Grafo de Kiali con el reparto entre las dos versiones:
 
 ![Kiali traffic graph](kiali-greeter.png)
+
+## Con ping-pong serverless (ejercicio 5.7)
+
+`manifests-knative/` despliega Log output en el cluster de Knative sobre la base `manifests/`: `reader` (`1.5.0`) llama a ping-pong por su nombre DNS completo (`PING_PONG_URL=http://ping-pong.exercises.svc.cluster.local/pings`), sin greeter (`GREETER_URL` vacia, la linea del saludo no se muestra) y sin la readinessProbe de 4.1, que consultaba a ping-pong cada 5 segundos y le impediria escalar a cero. Como ese cluster no tiene Traefik ni Istio, el Service es `NodePort` 30080, que el cluster expone en `http://localhost:8082`.

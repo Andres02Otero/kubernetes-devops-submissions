@@ -7,12 +7,17 @@ const FILE_PATH = path.join('/usr/src/app/files', 'status.log');
 // Desde el ejercicio 2.1: el contador de ping-pong ya no se lee de un
 // volumen compartido, se pide por HTTP al Service interno de ping-pong
 // (comunicacion pod-a-pod via el DNS de Kubernetes: <service>:<port>).
-const PING_PONG_URL = 'http://ping-pong-svc:3001/pings';
+// Desde el ejercicio 5.7 la URL es configurable: con ping-pong en Knative
+// se llama por su nombre DNS completo (ping-pong.exercises.svc.cluster.local,
+// ver manifests-knative/). Por defecto, el Service de siempre.
+const PING_PONG_URL = process.env.PING_PONG_URL || 'http://ping-pong-svc:3001/pings';
 
 // Desde el ejercicio 5.3: el saludo viene del servicio greeter. Se llama a
 // greeter-svc y no a una version concreta: Istio (HTTPRoute + waypoint)
 // decide si responde v1 o v2.
-const GREETER_URL = process.env.GREETER_URL || 'http://greeter-svc';
+// Vacia (GREETER_URL="") = sin greeter: la linea del saludo no se muestra
+// (el cluster de Knative de 5.7 no tiene el greeter de 5.3).
+const GREETER_URL = process.env.GREETER_URL ?? 'http://greeter-svc';
 
 // Desde el ejercicio 2.5: el ConfigMap log-output-config se monta como
 // archivo (information.txt) y ademas se pasa como env var (MESSAGE).
@@ -90,10 +95,10 @@ const server = http.createServer(async (req, res) => {
     const message = process.env.MESSAGE || '';
     const status = readLastLine();
     const count = await fetchPingPongCount();
-    const greeting = await fetchGreeting();
+    const greeting = GREETER_URL ? await fetchGreeting() : null;
 
     res.writeHead(200, { 'Content-Type': 'text/plain' });
-    res.end(`file content: ${fileContent}\nenv variable: MESSAGE=${message}\n${status}\nPing / Pongs: ${count}\ngreetings: ${greeting}`);
+    res.end(`file content: ${fileContent}\nenv variable: MESSAGE=${message}\n${status}\nPing / Pongs: ${count}${greeting === null ? '' : `\ngreetings: ${greeting}`}`);
 });
 
 const PORT = process.env.PORT || 3000;

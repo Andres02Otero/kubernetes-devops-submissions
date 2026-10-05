@@ -1,0 +1,10 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+# Base minima de Log output (sin greeter ni Istio) que reutiliza la variante
+# de Knative de 5.7 (../manifests-knative). ArgoCD no usa este archivo: lee
+# ../kustomization.yaml.
+resources:
+  - configmap.yaml
+  - deployment.yaml
+  - service.yaml

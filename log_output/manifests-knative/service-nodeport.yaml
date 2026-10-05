@@ -1,0 +1,14 @@
+# Este cluster no tiene Traefik ni Istio: log-output se abre por NodePort.
+# El cluster mapea el NodePort 30080 a localhost:8082 (comando del curso).
+apiVersion: v1
+kind: Service
+metadata:
+  name: log-output-svc
+  namespace: exercises
+spec:
+  type: NodePort
+  ports:
+    - port: 2345
+      protocol: TCP
+      targetPort: 3000
+      nodePort: 30080

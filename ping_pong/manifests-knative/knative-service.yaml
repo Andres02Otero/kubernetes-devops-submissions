@@ -1,0 +1,47 @@
+# Ejercicio 5.7: ping-pong como servicio serverless de Knative, en vez del
+# Deployment / Rollout de antes. Knative crea los pods cuando llegan
+# peticiones, los baja a cero cuando no hay trafico y escala solo. La
+# imagen es la misma (3.1.1): cumple el contrato de Knative porque escucha
+# en el puerto de la env var PORT (Knative la fija en 8080) y no guarda
+# estado propio (el contador vive en Postgres, manifests/postgres.yaml).
+#
+# Knative crea ademas un Service llamado ping-pong, asi que dentro del
+# cluster se llama por su nombre completo:
+#   http://ping-pong.exercises.svc.cluster.local
+# y desde fuera con Magic DNS: http://ping-pong.exercises.<IP>.sslip.io
+apiVersion: serving.knative.dev/v1
+
+kind: Service
+
+metadata:
+  name: ping-pong
+  namespace: exercises
+
+spec:
+  template:
+    spec:
+      containers:
+        - image: andres09otero/ping-pong:3.1.1
+          ports:
+            - containerPort: 8080
+          # Listo solo si /healthz llega a Postgres (ejercicio 4.1). En
+          # Knative la probe no lleva puerto: usa el del contenedor.
+          readinessProbe:
+            periodSeconds: 5
+            timeoutSeconds: 3
+            httpGet:
+              path: /healthz
+          env:
+            - name: PGHOST
+              value: "postgres-svc"
+            - name: PGPORT
+              value: "5432"
+            - name: PGUSER
+              value: "postgres"
+            - name: PGDATABASE
+              value: "postgres"
+            - name: PGPASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-credentials
+                  key: POSTGRES_PASSWORD

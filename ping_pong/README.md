@@ -80,3 +80,14 @@ kubectl apply -f manifests-gke/healthcheck.yaml
 El acceso publico es por el Gateway compartido con `log_output`, ver `../log_output/README.md`.
 
 Borrar el cluster al terminar para no gastar creditos: `gcloud container clusters delete dwk-cluster --zone=europe-north1-b`.
+
+## Serverless con Knative (ejercicio 5.7)
+
+En el cluster de Knative (`../knative/README.md`, ejercicio 5.6) ping-pong corre como **Knative Service** (`manifests-knative/knative-service.yaml`) en vez de Deployment/Rollout: Knative levanta pods con las peticiones, los baja a cero sin trafico y escala solo. La imagen es la misma (`3.1.1`): escucha en `PORT` (Knative la fija en 8080) y el estado vive en Postgres. Dentro del cluster se llama por su nombre completo, `http://ping-pong.exercises.svc.cluster.local`, y desde fuera por Magic DNS, `http://ping-pong.exercises.<IP>.sslip.io`.
+
+```bash
+kubectl apply -f ../namespaces/exercises-namespace.yaml
+kubectl apply -f manifests/secret.yaml -f manifests/postgres.yaml
+kubectl apply -f manifests-knative/knative-service.yaml
+kubectl apply -k ../log_output/manifests-knative
+```
