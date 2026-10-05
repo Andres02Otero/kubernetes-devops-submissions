@@ -1,0 +1,34 @@
+# Ejercicio 4.7: Application de ArgoCD para Log output, en forma declarativa
+# (seccion "Defining the whole with yaml" del curso). Se aplica una sola vez:
+#   kubectl apply -n argocd -f log_output/argocd-application.yaml
+# Desde ahi ArgoCD revisa el repo cada ~3 minutos y deja el namespace
+# exercises igual a lo que diga log_output/kustomization.yaml en main.
+apiVersion: argoproj.io/v1alpha1
+
+kind: Application
+
+metadata:
+  name: log-output
+  namespace: argocd
+
+spec:
+  project: default
+
+  source:
+    repoURL: https://github.com/Andres02Otero/kubernetes-devops-submissions
+    # Solo esta carpeta: el repo tiene varias apps y ArgoCD no debe tocar
+    # las demas (ping-pong, el proyecto...).
+    path: log_output
+    targetRevision: main
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: exercises
+
+  syncPolicy:
+    automated:
+      # prune: si un recurso sale del kustomization, se borra del cluster.
+      # selfHeal: si alguien lo cambia a mano con kubectl, se revierte a
+      # lo que dice git.
+      prune: true
+      selfHeal: true

@@ -87,3 +87,11 @@ kubectl apply -f manifests/service.yaml
 kubectl apply -f manifests-gke/gateway.yaml
 kubectl apply -f manifests-gke/route.yaml
 ```
+
+## GitOps con ArgoCD (ejercicio 4.7)
+
+Desde 4.7 Log output ya no se despliega con `kubectl apply` a mano: **ArgoCD**, que corre dentro del cluster, revisa este repo cada ~3 minutos y deja el namespace `exercises` igual a lo que diga `kustomization.yaml` en `main` (despliegue *pull*: nadie de afuera necesita acceso al cluster).
+
+- `kustomization.yaml`: ConfigMap, Deployment y Service (sin el Ingress de k3d, que choca en `/` con el de `todo_app`), y los tags de imagen.
+- `argocd-application.yaml`: el `Application` de ArgoCD (carpeta `log_output`, rama `main`, sync automatico con `prune` y `selfHeal`). Se aplica una vez: `kubectl apply -n argocd -f argocd-application.yaml`.
+- `../.github/workflows/log-output-gitops.yaml`: cuando cambia el codigo de `reader/` o `writer/` (o al lanzarlo a mano), construye las dos imagenes con el SHA del commit como tag, las sube a Docker Hub y hace commit del `kustomization.yaml` con el tag nuevo. No toca el cluster; ArgoCD ve ese commit y despliega. Necesita los secrets `DOCKERHUB_USERNAME` y `DOCKERHUB_TOKEN` en el repo.

@@ -1,0 +1,66 @@
+name: Log output GitOps release
+
+# Ejercicio 4.7 (GitOps, despliegue "pull"): este workflow NO toca el
+# cluster. Construye las imagenes de log_output, las sube a Docker Hub y
+# hace commit del nuevo tag en log_output/kustomization.yaml; ArgoCD, que
+# corre dentro del cluster, ve ese commit y despliega.
+on:
+  push:
+    branches:
+      - main
+    # Solo cambios de codigo necesitan imagen nueva. Los cambios de
+    # manifiestos ArgoCD los aplica directo desde git, sin este workflow.
+    # El commit que hace este mismo workflow no lo vuelve a disparar
+    # (GitHub no lanza workflows por commits hechos con GITHUB_TOKEN).
+    paths:
+      - 'log_output/reader/**'
+      - 'log_output/writer/**'
+  # Para lanzarlo a mano desde la pestana Actions sin cambiar codigo.
+  workflow_dispatch:
+
+# Necesario para que el commit del kustomization.yaml pueda hacer push.
+permissions:
+  contents: write
+
+# Dos ejecuciones a la vez chocarian al hacer commit del mismo archivo.
+concurrency:
+  group: log-output-gitops
+  cancel-in-progress: false
+
+jobs:
+  build-publish-release:
+    name: Build, Push, Release
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v4
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      # El SHA del commit como tag: unico por version y trazable a su codigo.
+      - name: Build and publish reader and writer
+        run: |-
+          docker build --tag "andres09otero/log-output-reader:$GITHUB_SHA" log_output/reader
+          docker push "andres09otero/log-output-reader:$GITHUB_SHA"
+          docker build --tag "andres09otero/log-output-writer:$GITHUB_SHA" log_output/writer
+          docker push "andres09otero/log-output-writer:$GITHUB_SHA"
+
+      - name: Set up Kustomize
+        uses: imranismail/setup-kustomize@v3
+
+      - name: Use the new images
+        working-directory: log_output
+        run: |-
+          kustomize edit set image andres09otero/log-output-reader=andres09otero/log-output-reader:$GITHUB_SHA
+          kustomize edit set image andres09otero/log-output-writer=andres09otero/log-output-writer:$GITHUB_SHA
+
+      - name: Commit kustomization.yaml to GitHub
+        uses: EndBug/add-and-commit@v10
+        with:
+          add: 'log_output/kustomization.yaml'
+          message: Log output new version released ${{ github.sha }}

@@ -79,6 +79,9 @@ k3d cluster create --port 8082:30080@agent:0 -p 8081:80@loadbalancer --agents 2
 ### Messaging Systems
 - [4.6](https://github.com/Andres02Otero/kubernetes-devops-submissions/tree/4.6)
 
+### GitOps
+- [4.7](https://github.com/Andres02Otero/kubernetes-devops-submissions/tree/4.7)
+
 ---
 
 ## Exercise 3.9 - DBaaS vs DIY

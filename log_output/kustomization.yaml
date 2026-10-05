@@ -1,0 +1,20 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+# Ejercicio 4.7: lo que ArgoCD sincroniza para Log output (ver
+# argocd-application.yaml). Sin ingress.yaml a proposito: en k3d reclama
+# el path / igual que todo-app-ingress y Traefik solo atiende a uno; y los
+# archivos de manifests-gke/ son solo para GKE.
+resources:
+  - manifests/configmap.yaml
+  - manifests/deployment.yaml
+  - manifests/service.yaml
+
+# El workflow .github/workflows/log-output-gitops.yaml reescribe estos tags
+# (kustomize edit set image) con el SHA de cada commit que cambia el codigo
+# y hace commit de este archivo; ese commit es lo que ArgoCD despliega.
+images:
+  - name: andres09otero/log-output-reader
+    newTag: 1.3.0
+  - name: andres09otero/log-output-writer
+    newTag: 1.0.0
