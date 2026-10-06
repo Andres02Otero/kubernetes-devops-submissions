@@ -150,3 +150,7 @@ count(kube_pod_info{namespace="monitoring", created_by_kind="StatefulSet"})
 Result: `3` (`loki-0`, `loki-chunks-cache-0` and `loki-results-cache-0`).
 
 ![Prometheus query result](monitoring/prometheus-statefulset-pods.png)
+
+## AI usage
+
+I used an AI assistant (Claude) during the course to help with code, configurations, debugging and some written parts, especially in the later exercises. I reviewed the work and take responsibility for it.
